@@ -195,3 +195,75 @@
    :x11-class-name (int 0x00024001)
    :x11-instance-name (int 0x00024002)})
 (def window-hints (set (keys window-hint->enum)))
+
+(def ^:private boolean-window-hints
+  #{:resizable :visible :decorated :focused
+    :auto-iconify :floating :maximized :center-cursor
+    :transparent-framebuffer :focus-on-show :scale-to-monitor
+    :stereo :srgb-capable :doublebuffer
+    :opengl-forward-compat :opengl-debug-context
+    :cocoa-retina-framebuffer :cocoa-graphics-switching})
+
+(defmethod mem/primitive-type ::window-hint
+  [_type]
+  ::mem/int)
+
+(defmethod mem/serialize* ::window-hint
+  [obj _type _scope]
+  (window-hint->enum obj))
+
+(defcfn default-window-hints
+  "Resets all the window creation init-hints to their default values."
+  "glfwDefaultWindowHints" [] ::mem/void)
+
+(def ^:private keyword->client-api
+  {:opengl 0x00030001
+   :opengl-es 0x00030002
+   :none 0})
+(def client-api-opts (set (keys keyword->client-api)))
+
+(def ^:private keyword->context-api
+  {:native 0x00036001
+   :egl 0x00036002
+   :osmesa 0x00036003})
+(def context-api-opts (set (keys keyword->context-api)))
+
+(def ^:private keyword->context-robustness
+  {:no-robustness 0
+   :no-reset-notification 0x00031001
+   :lose-context-on-reset 0x00031002})
+(def context-robustness-opts (set (keys keyword->context-robustness)))
+
+(def ^:private keyword->release-behavior
+  {:any 0
+   :none 0x00035002
+   :flush 0x00035001})
+(def release-behavior-opts (set (keys keyword->release-behavior)))
+
+(def ^:private keyword->opengl-profile
+  {:any 0
+   :core 0x00032001
+   :compat 0x00032002})
+
+(defcfn window-hint
+  "Sets a window hint for the next window to be created."
+  "glfwWindowHint" [::window-hint ::mem/int] ::mem/void
+  glfw-window-hint
+  [hint value]
+  (glfw-window-hint
+   hint
+   (if (boolean-window-hints hint)
+     (if value 1 0)
+     (case value
+       :client-api (keyword->client-api (or value :opengl))
+       :context-creation-api (keyword->context-api (or value :native))
+       :context-robustness (keyword->context-robustness (or value :no-robustness))
+       :context-release-behavior (keyword->release-behavior (or value :any))
+       :opengl-profile (keyword->opengl-profile (or value :any))
+       (if (= :dont-care value)
+         -1
+         value)))))
+
+(defcfn window-hint-string
+  "Sets a string-valued window hint for the next window to be created."
+  "glfwWindowHintString" [::window-hint ::mem/c-string] ::mem/void)
