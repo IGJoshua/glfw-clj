@@ -315,3 +315,34 @@
   "Sets the `title` of the given `window`."
   {:arglists '([window title])}
   "glfwSetWindowTitle" [::window ::mem/c-string] ::mem/void)
+
+(defalias ::image
+  [::mem/struct
+   [[:width ::mem/int]
+    [:height ::mem/int]
+    [:pixels ::mem/pointer]]])
+
+(defcfn set-window-icon
+  "Sets the icon of the `window` to one of the `images`.
+
+  The image with the closest resolution to the one desired by the OS will be
+  used, rescaling if needed.
+
+  Each image is a map with the keys `:width`, `:height`, and `:pixels`. The
+  `:width` and `:height` are integers, while `:pixels` is a pointer to the
+  memory which will be copied for the icon. The image data will be finished
+  copying before this function returns.
+
+  The image data is 8 bits color per channel, RGBA, little-endian, and
+  non-premultiplied. Pixels are arranged in rows starting from the top left."
+  "glfwSetWindowIcon" [::window ::mem/int ::mem/pointer] ::mem/void
+  glfw-set-window-icon
+  [window images]
+  (with-open [scope (mem/stack-scope)]
+    (let [image-array (mem/alloc-instance [::mem/array ::image (count images)] scope)]
+      (dorun
+       (map (fn [segment image]
+              (mem/serialize-into image ::image segment scope))
+            (mem/slice-segments image-array (mem/size-of ::image))
+            images))
+      (glfw-set-window-icon window (count images) (mem/address-of image-array)))))
