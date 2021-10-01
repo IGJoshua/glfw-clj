@@ -451,3 +451,12 @@
           y-scale (mem/alloc-instance ::mem/float scope)]
       (glfw-get-window-content-scale window (mem/address-of x-scale) (mem/address-of y-scale))
       [(mem/deserialize-from x-scale ::mem/float) (mem/deserialize-from y-scale ::mem/float)])))
+
+(defcfn get-window-opacity
+  "Gets the opacity of the `window`, including any decorations."
+  "glfwGetWindowOpacity" [::window] ::mem/float)
+
+(defcfn set-window-opacity
+  "Sets the opacity of the `window`, including any decorations."
+  {:arglists '([window opacity])}
+  "glfwSetWindowOpacity" [::window ::mem/float] ::mem/void)
