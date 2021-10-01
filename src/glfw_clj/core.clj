@@ -488,3 +488,22 @@
 (defcfn hide-window
   "Hides the `window` if it was previously shown."
   "glfwHideWindow" [::window] ::mem/void)
+
+(defcfn focus-window
+  "Requests focus on the `window`, bringing it to the front.
+
+  The `window` should already be visible and not iconified.
+
+  Do not use this function to steal focus from other applications unless you are
+  absolutely sure that is what the user wants. Prefer using attention
+  requests.
+
+  See [[request-window-attention]]."
+  "glfwFocusWindow" [::window] ::mem/void)
+
+(defcfn request-window-attention
+  "Requests the attention of the user on the `window`.
+
+  Once the user has given the application attention, usually by focusing the
+  window, the attention request ends."
+  "glfwRequestWindowAttention" [::window] ::mem/void)
