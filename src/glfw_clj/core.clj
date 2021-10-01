@@ -124,3 +124,54 @@
 
   This function may be called before [[init]]."
   "glfwSetErrorCallback" [::error-fn] ::error-fn)
+
+;;; Window Management
+
+(def ^:private window-hint->glenum
+  "Map from window creation hints and attributes to their GLEnum values."
+  {:focused 0x00020001
+   :iconified 0x00020002
+   :resizable 0x00020003
+   :visible 0x00020004
+   :decorated 0x00020005
+   :auto-iconify 0x00020006
+   :floating 0x00020007
+   :maximized 0x00020008
+   :center-cursor 0x00020009
+   :transparent-framebuffer 0x0002000A
+   :hovered 0x0002000B
+   :focus-on-show 0x0002000C
+   :red-bits 0x00021001
+   :green-bits 0x00021002
+   :blue-bits 0x00021003
+   :alpha-bits 0x00021004
+   :depth-bits 0x00021005
+   :stencil-bits 0x00021006
+   :accum-red-bits 0x00021007
+   :accum-green-bits 0x00021008
+   :accum-blue-bits 0x00021009
+   :accum-alpha-bits 0x0002100A
+   :aux-buffers 0x0002100B
+   :stereo 0x0002100C
+   :samples 0x0002100D
+   :srgb-capable 0x0002100E
+   :refresh-rate 0x0002100F
+   :doublebuffer 0x00021010
+   :client-api 0x00022001
+   :context-version-major 0x00022002
+   :context-version-minor 0x00022003
+   :context-revision 0x00022004
+   :context-robustness 0x00022005
+   :opengl-forward-compat 0x00022006
+   :opengl-debug-context 0x00022007
+   :opengl-profile 0x00022008
+   :context-release-behavior 0x00022009
+   :context-no-error 0x0002200A
+   :context-creation-api 0x0002200B
+   :scale-to-monitor 0x0002200C
+   :cocoa-retina-framebuffer 0x00023001
+   :cocoa-frame-name 0x00023002
+   :cocoa-graphics-switching 0x00023003
+   :x11-class-name 0x00024001
+   :x11-instance-name 0x00024002})
+(def window-hints (set (keys window-hint->glenum)))
