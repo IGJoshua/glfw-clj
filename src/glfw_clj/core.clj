@@ -777,3 +777,33 @@
     (glfw-set-window-content-scale-callback
      window (mem/serialize* callback ::window-content-scale-fn scope))
     ::window-content-scale-fn)))
+
+(defcfn poll-events
+  "Process all events on all the windows.
+
+  This may call the callbacks which are set, however the callbacks may be called
+  at other times depending on the platform.
+
+  On some platforms certain window events will block. The window-refresh
+  callback should perform any rendering during these events.
+
+  Joystick input does not depend on event processing."
+  "glfwPollEvents" [] ::mem/void)
+
+(defcfn wait-events
+  "Blocks the thread until at least one event is available, and processes it.
+
+  See [[poll-events]]."
+  "glfwWaitEvents" [] ::mem/void)
+
+(defcfn wait-events-timeout
+  "Process events as [[wait-events]], but returns after `timeout` seconds.
+
+  See [[poll-events]]."
+  {:arglists '([timeout])}
+  "glfwWaitEventsTimeout" [::mem/double] ::mem/void)
+
+(defcfn post-empty-event
+  "Post an empty event to the event queue, causing [[wait-events]]
+  and [[wait-events-timeout]] to return."
+  "glfwPostEmptyEvent" [] ::mem/void)
