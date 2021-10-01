@@ -267,3 +267,31 @@
 (defcfn window-hint-string
   "Sets a string-valued window hint for the next window to be created."
   "glfwWindowHintString" [::window-hint ::mem/c-string] ::mem/void)
+
+(defalias ::window ::mem/pointer)
+(defalias ::monitor ::mem/pointer)
+
+(defcfn create-window
+  "Constructs a brand new window of the given size and with the given `title`.
+
+  If the window should be created as a fullscreen window, then pass a `monitor`
+  object. The `share` parameter is another window object which the context will
+  share resources with.
+
+  Returns an opaque window object.
+
+  See [[destroy-window]]."
+  "glfwCreateWindow" [::mem/int ::mem/int ::mem/c-string ::monitor ::window] ::window
+  glfw-create-window
+  ([width height title]
+   (create-window width height title nil nil))
+  ([width height title monitor]
+   (create-window width height title monitor nil))
+  ([width height title monitor share]
+   (glfw-create-window width height title monitor share)))
+
+(defcfn destroy-window
+  "Destroys the given `window`.
+
+  See [[create-window]]."
+  "glfwDestroyWindow" [::window] ::mem/void)
