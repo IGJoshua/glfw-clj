@@ -25,12 +25,12 @@
   is called."
   "glfwTerminate" [] ::mem/void)
 
-(def ^:private init-hint->glenum
-  "Map from hint keywords to the GLEnum values they represent."
+(def ^:private init-hint->enum
+  "Map from hint keywords to the enum values they represent."
   {:joystick-hat-buttons 0x00050001
    :cocoa-chdir-resources 0x00051001
    :cocoa-menubar 0x00051002})
-(def init-hints (set (keys init-hint->glenum)))
+(def init-hints (set (keys init-hint->enum)))
 
 (defcfn init-hint
   "Sets the given `hint` with the boolean `value`.
@@ -47,7 +47,7 @@
   glfw-init-hint
   [hint value]
   (assert (init-hints hint) (str "`hint` is one of " (pr-str init-hints)))
-  (glfw-init-hint (init-hints hint) (if value 1 0)))
+  (glfw-init-hint hint (if value 1 0)))
 
 (defcfn get-version
   "Gets a vector of the major, minor, and revision version of GLFW.
@@ -74,7 +74,7 @@
   "glfwGetVersionString" [] ::mem/c-string)
 
 (def ^:private error-code->keyword
-  "Map from error code GLEnums to keywords naming the errors."
+  "Map from error code enums to keywords naming the errors."
   {0x00000000 :no-error
    0x00010001 :not-initialized
    0x00010002 :no-current-context
@@ -127,8 +127,8 @@
 
 ;;; Window Management
 
-(def ^:private window-hint->glenum
-  "Map from window creation hints and attributes to their GLEnum values."
+(def ^:private window-hint->enum
+  "Map from window creation hints and attributes to their enum values."
   {:focused 0x00020001
    :iconified 0x00020002
    :resizable 0x00020003
@@ -174,4 +174,4 @@
    :cocoa-graphics-switching 0x00023003
    :x11-class-name 0x00024001
    :x11-instance-name 0x00024002})
-(def window-hints (set (keys window-hint->glenum)))
+(def window-hints (set (keys window-hint->enum)))
