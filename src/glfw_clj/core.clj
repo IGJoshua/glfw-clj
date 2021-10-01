@@ -32,6 +32,14 @@
    :cocoa-menubar 0x00051002})
 (def init-hints (set (keys init-hint->enum)))
 
+(defmethod mem/primitive-type ::init-hint
+  [_type]
+  ::mem/int)
+
+(defmethod mem/serialize* ::init-hint
+  [obj _type _scope]
+  (init-hint->enum obj))
+
 (defcfn init-hint
   "Sets the given `hint` with the boolean `value`.
 
@@ -43,7 +51,7 @@
   Hints starting with `:cocoa` are MacOS-specific.
 
   This must be called before [[init]]."
-  "glfwInitHint" [::mem/int ::mem/int] ::mem/void
+  "glfwInitHint" [::init-hint ::mem/int] ::mem/void
   glfw-init-hint
   [hint value]
   (assert (init-hints hint) (str "`hint` is one of " (pr-str init-hints)))
