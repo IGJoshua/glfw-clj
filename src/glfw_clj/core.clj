@@ -25,12 +25,12 @@
   is called."
   "glfwTerminate" [] ::mem/void)
 
-(def ^:private hint->glenum
+(def ^:private init-hint->glenum
   "Map from hint keywords to the GLEnum values they represent."
   {:joystick-hat-buttons 0x00050001
    :cocoa-chdir-resources 0x00051001
    :cocoa-menubar 0x00051002})
-(def ^:private hints (set (keys hint->glenum)))
+(def init-hints (set (keys init-hint->glenum)))
 
 (defcfn init-hint
   "Sets the given `hint` with the boolean `value`.
@@ -46,8 +46,8 @@
   "glfwInitHint" [::mem/int ::mem/int] ::mem/void
   glfw-init-hint
   [hint value]
-  (assert (hints hint) (str "`hint` is one of " (pr-str hints)))
-  (glfw-init-hint (hints hint) (if value 1 0)))
+  (assert (init-hints hint) (str "`hint` is one of " (pr-str init-hints)))
+  (glfw-init-hint (init-hints hint) (if value 1 0)))
 
 (defcfn get-version
   "Gets a vector of the major, minor, and revision version of GLFW.
