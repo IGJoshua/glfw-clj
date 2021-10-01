@@ -266,6 +266,7 @@
 
 (defcfn window-hint-string
   "Sets a string-valued window hint for the next window to be created."
+  {:arglists '([hint value])}
   "glfwWindowHintString" [::window-hint ::mem/c-string] ::mem/void)
 
 (defalias ::window ::mem/pointer)
