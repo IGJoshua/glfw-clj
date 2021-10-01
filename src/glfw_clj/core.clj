@@ -71,25 +71,47 @@
   This can be called on any thread, and before [[init]]."
   "glfwGetVersionString" [] ::mem/c-string)
 
+(def ^:private error-code->keyword
+  "Map from error code GLEnums to keywords naming the errors."
+  {0x00000000 :no-error
+   0x00010001 :not-initialized
+   0x00010002 :no-current-context
+   0x00010003 :invalid-enum
+   0x00010004 :invalid-value
+   0x00010005 :out-of-memory
+   0x00010006 :api-unavailable
+   0x00010007 :version-unavailable
+   0x00010008 :platform-error
+   0x00010009 :format-unavailable
+   0x0001000A :no-window-context})
+
+(defmethod mem/primitive-type ::error-code
+  [_type]
+  ::mem/int)
+
+(defmethod mem/deserialize* ::error-code
+  [obj _type]
+  (error-code->keyword obj))
+
 (defcfn get-error
   "Gets the most recent error which has occurred on this thread.
 
   If there is an error to fetch, it is returned as an [[ex-info]] with the
-  message as the error description and the key `:code` in the [[ex-data]] with
-  the error code.
+  message as the error description and the key `:type` in the [[ex-data]] with
+  the error code's human-readable name.
 
   This function may be called before [[init]]."
-  "glfwGetError" [::mem/pointer] ::mem/int
+  "glfwGetError" [::mem/pointer] ::error-code
   glfw-get-error
   []
   (with-open [scope (mem/stack-scope)]
     (let [description (mem/alloc-instance ::mem/pointer scope)
           error-code (glfw-get-error (mem/address-of description))
           description-str (mem/deserialize-from description ::mem/c-string)]
-      (when-not (zero? error-code)
-        (ex-info description-str {:code error-code})))))
+      (when-not (= :no-error error-code)
+        (ex-info description-str {:type error-code})))))
 
-(defalias ::error-fn [::ffi/fn [::mem/int ::mem/c-string] ::mem/void])
+(defalias ::error-fn [::ffi/fn [::error-code ::mem/c-string] ::mem/void])
 
 (defcfn set-error-callback
   "Sets the global error callback for GLFW.
