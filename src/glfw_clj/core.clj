@@ -346,3 +346,19 @@
             (mem/slice-segments image-array (mem/size-of ::image))
             images))
       (glfw-set-window-icon window (count images) (mem/address-of image-array)))))
+
+(defcfn get-window-pos
+  "Gets the current x and y position of the given `window` as a vector."
+  "glfwGetWindowPos" [::window ::mem/pointer ::mem/pointer] ::mem/void
+  glfw-get-window-pos
+  [window]
+  (with-open [scope (mem/stack-scope)]
+    (let [xpos (mem/alloc-instance ::mem/int scope)
+          ypos (mem/alloc-instance ::mem/int scope)]
+      (glfw-get-window-pos window (mem/address-of xpos) (mem/address-of ypos))
+      [(mem/deserialize-from xpos ::mem/int) (mem/deserialize-from ypos ::mem/int)])))
+
+(defcfn set-window-pos
+  "Sets the `x` and `y` positions of the given `window`."
+  {:arglists '([window x y])}
+  "glfwSetWindowPos" [::window ::mem/int ::mem/int] ::mem/void)
