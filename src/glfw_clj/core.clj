@@ -295,3 +295,17 @@
 
   See [[create-window]]."
   "glfwDestroyWindow" [::window] ::mem/void)
+
+(defcfn window-should-close
+  "Checks if the given `window`'s close flag is set."
+  "glfwWindowShouldClose" [::window] ::mem/int
+  glfw-window-should-close
+  [window]
+  (not (zero? (glfw-window-should-close window))))
+
+(defcfn set-window-should-close
+  "Sets the given `window`'s close flag."
+  "glfwSetWindowShouldClose" [::window ::mem/int] ::mem/void
+  glfw-set-window-should-close
+  [window should-close?]
+  (glfw-set-window-should-close window (if should-close? 1 0)))
