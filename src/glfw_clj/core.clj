@@ -580,3 +580,13 @@
      (if (= :dont-care value)
        -1
        value))))
+
+(defcfn set-window-user-pointer
+  "Sets a user-defined pointer value associated with the `window`.
+
+  The current value is retained until the `window` is destroyed."
+  "glfwSetWindowUserPointer" [::window ::mem/pointer] ::mem/void)
+
+(defcfn get-window-user-pointer
+  "Gets a user-defined pointer value associated with the `window`."
+  "glfwGetWindowUserPointer" [::window] ::mem/pointer)
