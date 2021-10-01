@@ -480,3 +480,11 @@
 
   If the `window` was fullscreen, this function does nothing."
   "glfwMaximizeWindow" [::window] ::mem/void)
+
+(defcfn show-window
+  "Shows the `window` if it was previously hidden."
+  "glfwShowWindow" [::window] ::mem/void)
+
+(defcfn hide-window
+  "Hides the `window` if it was previously shown."
+  "glfwHideWindow" [::window] ::mem/void)
