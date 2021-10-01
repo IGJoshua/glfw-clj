@@ -362,3 +362,45 @@
   "Sets the `x` and `y` positions of the given `window`."
   {:arglists '([window x y])}
   "glfwSetWindowPos" [::window ::mem/int ::mem/int] ::mem/void)
+
+(defcfn get-window-size
+  "Gets the width and height of the content area of the given `window` as a vector."
+  "glfwGetWindowSize" [::window ::mem/pointer ::mem/pointer] ::mem/void
+  glfw-get-window-size
+  [window]
+  (with-open [scope (mem/stack-scope)]
+    (let [width (mem/alloc-instance ::mem/int scope)
+          height (mem/alloc-instance ::mem/int scope)]
+      (glfw-get-window-size window (mem/address-of width) (mem/address-of height))
+      [(mem/deserialize-from width ::mem/int) (mem/deserialize-from height ::mem/int)])))
+
+(defcfn set-window-size-limits
+  "Sets the size limits of the content area of the window"
+  "glfwSetWindowSizeLimits" [::window ::mem/int ::mem/int ::mem/int ::mem/int] ::mem/void
+  glfw-set-window-size-limits
+  [window min-width min-height max-width max-height]
+  (apply glfw-set-window-size-limits
+         window
+         (map #(if (= :dont-care %) -1 %) [min-width min-height max-width max-height])))
+
+(defcfn set-window-aspect-ratio
+  "Sets a required aspect ratio of the content area of the `window`.
+
+  This has no effect on fullscreen windows.
+
+  The `ratio` must be [[rational?]], with the numerator and denominator
+  extracted before being passed to the 3-arity version of this function."
+  "glfwSetWindowAspectRatio" [::window ::mem/int ::mem/int] ::mem/void
+  glfw-set-window-aspect-ratio
+  ([window ratio]
+   (assert (rational? ratio))
+   (if (ratio? ratio)
+     (set-window-aspect-ratio window (numerator ratio) (denominator ratio))
+     (set-window-aspect-ratio window ratio 1)))
+  ([window numer denom]
+   (glfw-set-window-aspect-ratio window numer denom)))
+
+(defcfn set-window-size
+  "Sets the `width` and `height` of the content area of `window`."
+  {:arglists '([window width height])}
+  "glfwSetWindowSize" [::window ::mem/int ::mem/int] ::mem/void)
