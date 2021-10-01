@@ -5,6 +5,8 @@
 
 (ffi/load-system-library "glfw")
 
+;;; Initialization and Error Handling
+
 (defcfn init
   "Initializes GLFW.
 
