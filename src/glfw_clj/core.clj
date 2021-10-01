@@ -130,8 +130,20 @@
 
   Returns the previous callback, or nil if there was none.
 
+  If `scope` is passed, the callback will be kept valid for the duration of that
+  scope. If it is not, a [[mem/global-scope]] is used. If the callback is called
+  by GLFW after the scope has been released, it will cause a JVM crash.
+
   This function may be called before [[init]]."
-  "glfwSetErrorCallback" [::error-fn] ::error-fn)
+  "glfwSetErrorCallback" [::mem/pointer] ::mem/pointer
+  glfw-set-error-callback
+  ([callback]
+   (set-error-callback callback (mem/global-scope)))
+  ([callback scope]
+   (mem/deserialize*
+    (glfw-set-error-callback
+     (mem/serialize* callback ::error-fn scope))
+    ::error-fn)))
 
 ;;; Window Management
 
