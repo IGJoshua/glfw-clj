@@ -404,3 +404,50 @@
   "Sets the `width` and `height` of the content area of `window`."
   {:arglists '([window width height])}
   "glfwSetWindowSize" [::window ::mem/int ::mem/int] ::mem/void)
+
+(defcfn get-framebuffer-size
+  "Gets the size in pixels of the framebuffer for rendering to the `window`, as a vector."
+  "glfwGetFramebufferSize" [::window ::mem/pointer ::mem/pointer] ::mem/void
+  glfw-get-framebuffer-size
+  [window]
+  (with-open [scope (mem/stack-scope)]
+    (let [width (mem/alloc-instance ::mem/int scope)
+          height (mem/alloc-instance ::mem/int scope)]
+      (glfw-get-framebuffer-size window (mem/address-of width) (mem/address-of height))
+      [(mem/deserialize-from width ::mem/int) (mem/deserialize-from height ::mem/int)])))
+
+(defcfn get-window-frame-size
+  "Gets the size of the `window` (including decorations).
+
+  Returns a vector of the pixel lengths of the left, top, right, and bottom
+  edges of the window."
+  "glfwGetWindowFrameSize" [::window ::mem/pointer ::mem/pointer ::mem/pointer ::mem/pointer] ::mem/void
+  glfw-get-window-frame-size
+  [window]
+  (with-open [scope (mem/stack-scope)]
+    (let [left (mem/alloc-instance ::mem/int scope)
+          top (mem/alloc-instance ::mem/int scope)
+          right (mem/alloc-instance ::mem/int scope)
+          bottom (mem/alloc-instance ::mem/int scope)]
+      (glfw-get-window-frame-size window
+                                  (mem/address-of left)
+                                  (mem/address-of top)
+                                  (mem/address-of right)
+                                  (mem/address-of bottom))
+      [(mem/deserialize-from left ::mem/int)
+       (mem/deserialize-from top ::mem/int)
+       (mem/deserialize-from right ::mem/int)
+       (mem/deserialize-from bottom ::mem/int)])))
+
+(defcfn get-window-content-scale
+  "Gets the current content scale for the given `window`.
+
+  The content scale is the ratio between the current DPI and the platform default DPI."
+  "glfwGetWindowContentScale" [::window ::mem/pointer ::mem/pointer] ::mem/void
+  glfw-get-window-content-scale
+  [window]
+  (with-open [scope (mem/stack-scope)]
+    (let [x-scale (mem/alloc-instance ::mem/float scope)
+          y-scale (mem/alloc-instance ::mem/float scope)]
+      (glfw-get-window-content-scale window (mem/address-of x-scale) (mem/address-of y-scale))
+      [(mem/deserialize-from x-scale ::mem/float) (mem/deserialize-from y-scale ::mem/float)])))
