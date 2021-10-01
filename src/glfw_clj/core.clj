@@ -310,3 +310,8 @@
   glfw-set-window-should-close
   [window should-close?]
   (glfw-set-window-should-close window (if should-close? 1 0)))
+
+(defcfn set-window-title
+  "Sets the `title` of the given `window`."
+  {:arglists '([window title])}
+  "glfwSetWindowTitle" [::window ::mem/c-string] ::mem/void)
