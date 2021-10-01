@@ -216,34 +216,45 @@
   "Resets all the window creation init-hints to their default values."
   "glfwDefaultWindowHints" [] ::mem/void)
 
+(defn- reverse-map
+  "Takes a 1:1 map and returns a map from the values to the keys."
+  [m]
+  (into {} (map (comp vec reverse)) m))
+
 (def ^:private keyword->client-api
   {:opengl 0x00030001
    :opengl-es 0x00030002
    :none 0})
+(def ^:private client-api->keyword (reverse-map keyword->client-api))
 (def client-api-opts (set (keys keyword->client-api)))
 
 (def ^:private keyword->context-api
   {:native 0x00036001
    :egl 0x00036002
    :osmesa 0x00036003})
+(def ^:private context-api->keyword (reverse-map keyword->context-api))
 (def context-api-opts (set (keys keyword->context-api)))
 
 (def ^:private keyword->context-robustness
   {:no-robustness 0
    :no-reset-notification 0x00031001
    :lose-context-on-reset 0x00031002})
+(def ^:private context-robustness->keyword (reverse-map keyword->context-robustness))
 (def context-robustness-opts (set (keys keyword->context-robustness)))
 
 (def ^:private keyword->release-behavior
   {:any 0
    :none 0x00035002
    :flush 0x00035001})
+(def ^:private release-behavior->keyword (reverse-map keyword->release-behavior))
 (def release-behavior-opts (set (keys keyword->release-behavior)))
 
 (def ^:private keyword->opengl-profile
   {:any 0
    :core 0x00032001
    :compat 0x00032002})
+(def ^:private opengl-profile->keyword (reverse-map keyword->opengl-profile))
+(def opengl-profile-opts (set (keys keyword->opengl-profile)))
 
 (defcfn window-hint
   "Sets a window hint for the next window to be created."
@@ -532,3 +543,40 @@
   ([window monitor x-pos y-pos width height refresh-rate]
    (glfw-set-window-monitor window monitor x-pos y-pos width height
                             (if (= :dont-care refresh-rate) -1 refresh-rate))))
+
+(defcfn get-window-attrib
+  "Gets the current value of `attrib` from the `window`.
+
+  Framebuffer related hints are not attributes."
+  "glfwGetWindowAttrib" [::window ::window-hint] ::mem/int
+  glfw-get-window-attrib
+  [window attrib]
+  (let [res (glfw-get-window-attrib window attrib)]
+    (if (boolean-window-hints attrib)
+      (not (zero? res))
+      (case attrib
+        :client-api (client-api->keyword res)
+        :context-creation-api (context-api->keyword res)
+        :context-robustness (context-robustness->keyword res)
+        :context-release-behavior (release-behavior->keyword res)
+        :opengl-profile (opengl-profile->keyword res)
+        (if (= -1 res)
+          :dont-care
+          res)))))
+
+(defcfn set-window-attrib
+  "Sets the `value` of `attrib` for the `window`.
+
+  Can only set `:decorated`, `:resizable`, `:floating`, `:auto-iconify`, and
+  `:focus-on-show`."
+  "glfwSetWindowAttrib" [::window ::window-hint ::mem/int] ::mem/void
+  glfw-set-window-attrib
+  [window attrib value]
+  (glfw-set-window-attrib
+   window
+   attrib
+   (if (boolean-window-hints attrib)
+     (if value 1 0)
+     (if (= :dont-care value)
+       -1
+       value))))
