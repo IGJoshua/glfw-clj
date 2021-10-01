@@ -460,3 +460,23 @@
   "Sets the opacity of the `window`, including any decorations."
   {:arglists '([window opacity])}
   "glfwSetWindowOpacity" [::window ::mem/float] ::mem/void)
+
+(defcfn iconify-window
+  "Minimizes the `window` if it was previously restored.
+
+  On a fullscreen `window`, returns the monitor to its original resolution until
+  the `window` is restored."
+  "glfwIconifyWindow" [::window] ::mem/void)
+
+(defcfn restore-window
+  "Restores the `window` to its chosen resolution if it was previously maximized or iconified.
+
+  If the `window` was fullscreen, returns the monitor to its original
+  resolution."
+  "glfwRestoreWindow" [::window] ::mem/void)
+
+(defcfn maximize-window
+  "Maximizes the `window`.
+
+  If the `window` was fullscreen, this function does nothing."
+  "glfwMaximizeWindow" [::window] ::mem/void)
