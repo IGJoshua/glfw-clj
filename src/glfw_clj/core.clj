@@ -507,3 +507,28 @@
   Once the user has given the application attention, usually by focusing the
   window, the attention request ends."
   "glfwRequestWindowAttention" [::window] ::mem/void)
+
+(defcfn get-window-monitor
+  "Gets an opaque representation of the monitor for the `window`.
+
+  Returns null if the `window` is not a fullscreen window."
+  "glfwGetWindowMonitor" [::window] ::monitor)
+
+(defcfn set-window-monitor
+  "Sets the `window` to be fullscreen on `monitor`, or to windowed mode if nil.
+
+  If `monitor` is nil, the `refresh-rate` is ignored. If `monitor` is non-nil,
+  then `x-pos` and `y-pos` are ignored. Alternate-arity versions of the function
+  are provided to match those uses."
+  {:arglists '([window monitor width height refresh-rate]
+               [window x-pos y-pos width height]
+               [window monitor x-pos y-pos width height refresh-rate])}
+  "glfwSetWindowMonitor" [::window ::monitor ::mem/int ::mem/int ::mem/int ::mem/int ::mem/int] ::mem/void
+  glfw-set-window-monitor
+  ([window monitor-or-x arg1 arg2 arg3]
+   (if (mem/address? monitor-or-x)
+     (set-window-monitor window monitor-or-x 0 0 arg1 arg2 arg3)
+     (set-window-monitor window nil monitor-or-x arg1 arg2 arg3 :dont-care)))
+  ([window monitor x-pos y-pos width height refresh-rate]
+   (glfw-set-window-monitor window monitor x-pos y-pos width height
+                            (if (= :dont-care refresh-rate) -1 refresh-rate))))
