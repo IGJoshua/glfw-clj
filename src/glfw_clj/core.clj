@@ -807,3 +807,12 @@
   "Post an empty event to the event queue, causing [[wait-events]]
   and [[wait-events-timeout]] to return."
   "glfwPostEmptyEvent" [] ::mem/void)
+
+(defcfn swap-buffers
+  "Swap the front and back buffers of a GL or GLES context for `window`.
+
+  If the swap interval is greater than zero, the GPU driver will wait that many
+  screen updates before swapping the buffers.
+
+  When rendering with Vulkan, use `vkQueuePresentKHR` instead."
+  "glfwSwapBuffers" [::window] ::mem/void)
