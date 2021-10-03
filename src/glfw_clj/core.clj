@@ -821,3 +821,55 @@
 
   When rendering with Vulkan, use `vkQueuePresentKHR` instead."
   "glfwSwapBuffers" [::window] ::mem/void)
+
+;;; Context Creation
+
+(defcfn make-context-current
+  "Binds the context for the given `window` to the current thread.
+
+  Only one context can be bound on the thread at once. If nil is passed, any
+  context already bound to this thread will be released."
+  "glfwMakeContextCurrent" [::window] ::mem/void)
+
+(defcfn get-current-context
+  "Gets the window whose context is bound to the current thread."
+  "glfwGetCurrentContext" [] ::window)
+
+(defcfn swap-interval
+  "Sets the number of vblanks to wait for before showing the buffer.
+
+  A context must be current on this thread to call this function.
+
+  This function does not apply to Vulkan. If you are rendering using Vulkan, set
+  the present mode of your swapchain instead.
+
+  See [[make-context-current]]."
+  "glfwSwapInterval" [::mem/int] ::mem/void)
+
+(defcfn extension-supported
+  "Checks if a given api extension is supported for the given context.
+
+  This can search both for context creation extensions and client extensions.
+
+  This function does not apply to Vulkan. If you are using Vulkan
+  see [[get-required-instance-extensions]], and use
+  `vkEnumerateInstanceExtensionProperties` and
+  `vkEnumerateDeviceExtensionProperties` instead."
+  {:arglists '([extension-name])}
+  "glfwExtensionSupported" [::mem/c-string] ::bool)
+
+(defcfn get-proc-address
+  "Returns a pointer to the specified procedure.
+
+  The returned address is not guaranteed to be the same between contexts.
+
+  This function may return a non-nil value even for unsupported functions.
+  Always check the version and extensions supported first.
+
+  This function does not apply if you are using Vulkan. If you are using Vulkan,
+  see [[get-instance-proc-address]], and use `vkGetInstanceProcAddr` and
+  `vkGetDeviceProcAddr` instead.
+
+  The pointer is valid until the context is destroyed."
+  {:arglists '([proc-name])}
+  "glfwGetProcAddress" [::mem/c-string] ::mem/pointer)
