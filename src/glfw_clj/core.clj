@@ -40,6 +40,18 @@
   [obj _type _scope]
   (init-hint->enum obj))
 
+(defmethod mem/primitive-type ::bool
+  [_type]
+  ::mem/int)
+
+(defmethod mem/serialize* ::bool
+  [obj _type _scope]
+  (int (if obj 1 0)))
+
+(defmethod mem/deserialize* ::bool
+  [obj _type]
+  (not (zero? obj)))
+
 (defcfn init-hint
   "Sets the given `hint` with the boolean `value`.
 
@@ -51,11 +63,7 @@
   Hints starting with `:cocoa` are MacOS-specific.
 
   This must be called before [[init]]."
-  "glfwInitHint" [::init-hint ::mem/int] ::mem/void
-  glfw-init-hint
-  [hint value]
-  (assert (init-hints hint) (str "`hint` is one of " (pr-str init-hints)))
-  (glfw-init-hint hint (if value 1 0)))
+  "glfwInitHint" [::init-hint ::bool] ::mem/void)
 
 (defcfn get-version
   "Gets a vector of the major, minor, and revision version of GLFW.
@@ -317,10 +325,7 @@
 
 (defcfn set-window-should-close
   "Sets the given `window`'s close flag."
-  "glfwSetWindowShouldClose" [::window ::mem/int] ::mem/void
-  glfw-set-window-should-close
-  [window should-close?]
-  (glfw-set-window-should-close window (if should-close? 1 0)))
+  "glfwSetWindowShouldClose" [::window ::bool] ::mem/void)
 
 (defcfn set-window-title
   "Sets the `title` of the given `window`."
