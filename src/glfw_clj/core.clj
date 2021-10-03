@@ -738,7 +738,7 @@
 
 (defalias ::window-framebuffer-size-fn [::ffi/fn [::window ::mem/int ::mem/int] ::mem/void])
 
-(defcfn set-window-framebuffer-size-callback
+(defcfn set-framebuffer-size-callback
   "Sets the window framebuffer size `callback` for the `window`.
 
   The `callback` is a function of the window the event is from and two ints
@@ -748,12 +748,12 @@
 
   If `scope` is passed, the callback will be kept valid for the duration of that
   scope. If it is not, a [[mem/global-scope]] is used."
-  "glfwSetWindowFramebuffer-SizeCallback" [::window ::mem/pointer] ::mem/pointer
-  glfw-set-window-framebuffer-size-callback
-  ([window callback] (set-window-framebuffer-size-callback window callback (mem/global-scope)))
+  "glfwSetFramebufferSizeCallback" [::window ::mem/pointer] ::mem/pointer
+  glfw-set-framebuffer-size-callback
+  ([window callback] (set-framebuffer-size-callback window callback (mem/global-scope)))
   ([window callback scope]
    (mem/deserialize*
-    (glfw-set-window-framebuffer-size-callback
+    (glfw-set-framebuffer-size-callback
      window (mem/serialize* callback ::window-framebuffer-size-fn scope))
     ::window-framebuffer-size-fn)))
 
@@ -769,7 +769,7 @@
 
   If `scope` is passed, the callback will be kept valid for the duration of that
   scope. If it is not, a [[mem/global-scope]] is used."
-  "glfwSetWindowContent-ScaleCallback" [::window ::mem/pointer] ::mem/pointer
+  "glfwSetWindowContentScaleCallback" [::window ::mem/pointer] ::mem/pointer
   glfw-set-window-content-scale-callback
   ([window callback] (set-window-content-scale-callback window callback (mem/global-scope)))
   ([window callback scope]
