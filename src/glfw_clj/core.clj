@@ -873,3 +873,230 @@
   The pointer is valid until the context is destroyed."
   {:arglists '([proc-name])}
   "glfwGetProcAddress" [::mem/c-string] ::mem/pointer)
+
+;;; Monitors
+
+(defcfn get-monitors
+  "Gets a sequence of opaque monitor objects."
+  "glfwGetMonitors" [::mem/pointer] ::mem/pointer
+  glfw-get-monitors
+  []
+  (with-open [scope (mem/stack-scope)]
+    (let [count (mem/alloc-instance ::mem/int scope)
+          monitors (glfw-get-monitors (mem/address-of count))
+          count (mem/deserialize-from count ::mem/int)
+          array-size (mem/size-of [::mem/array ::monitor count])
+          monitors (mem/slice-global monitors array-size)]
+      (mem/seq-of ::monitor monitors))))
+
+(defcfn get-primary-monitor
+  "Gets an opaque handle to the current primary monitor."
+  "glfwGetPrimaryMonitor" [] ::monitor)
+
+(defcfn get-monitor-pos
+  "Gets the virtual screen coordinate of the upper left corner of the `monitor`."
+  "glfwGetMonitorPos" [::monitor ::mem/pointer ::mem/pointer] ::mem/void
+  glfw-get-monitor-pos
+  [monitor]
+  (with-open [scope (mem/stack-scope)]
+    (let [xpos (mem/alloc-instance ::mem/int scope)
+          ypos (mem/alloc-instance ::mem/int scope)]
+      (glfw-get-monitor-pos monitor (mem/address-of xpos) (mem/address-of ypos))
+      [(mem/deserialize-from xpos ::mem/int) (mem/deserialize-from ypos ::mem/int)])))
+
+(defcfn get-monitor-workarea
+  "Gets the upper left point and extents of the `monitor`'s work area.
+
+  This is returned as a vector of the x and y position of the upper left corner
+  of the monitor, and the width and height of the work area.
+
+  The work area excludes things like a menubar or hotbar.
+
+  If there is no OS hotbar, the width and height are the resolution of the
+  monitor in screen coordinates."
+  "glfwGetMonitorWorkarea"
+  [::monitor ::mem/pointer ::mem/pointer ::mem/pointer ::mem/pointer]
+  ::mem/void
+  glfw-get-monitor-workarea
+  [monitor]
+  (with-open [scope (mem/stack-scope)]
+    (let [xpos (mem/alloc-instance ::mem/int scope)
+          ypos (mem/alloc-instance ::mem/int scope)
+          width (mem/alloc-instance ::mem/int scope)
+          height (mem/alloc-instance ::mem/int scope)]
+      (glfw-get-monitor-workarea
+       monitor
+       (mem/address-of xpos)
+       (mem/address-of ypos)
+       (mem/address-of width)
+       (mem/address-of height))
+      [(mem/deserialize-from xpos ::mem/int)
+       (mem/deserialize-from ypos ::mem/int)
+       (mem/deserialize-from width ::mem/int)
+       (mem/deserialize-from height ::mem/int)])))
+
+(defcfn get-monitor-physical-size
+  "Gets the size of the `monitor` in millimeters.
+
+  Returns a vector of the width and height."
+  "glfwGetMonitorPhysicalSize" [::monitor ::mem/pointer ::mem/pointer] ::mem/void
+  glfw-get-monitor-physical-size
+  [monitor]
+  (with-open [scope (mem/stack-scope)]
+    (let [width (mem/alloc-instance ::mem/int scope)
+          height (mem/alloc-instance ::mem/int scope)]
+      (glfw-get-monitor-physical-size monitor (mem/address-of width) (mem/address-of height))
+      [(mem/deserialize-from width ::mem/int)
+       (mem/deserialize-from height ::mem/int)])))
+
+(defcfn get-monitor-content-scale
+  "Gets the x and y scale of the content in the `monitor`.
+
+  The content scale is the ratio between the current DPI and the platform
+  default DPI."
+  "glfwGetMonitorContentScale" [::monitor ::mem/pointer ::mem/pointer] ::mem/void
+  glfw-get-monitor-content-scale
+  [monitor]
+  (with-open [scope (mem/stack-scope)]
+    (let [xscale (mem/alloc-instance ::mem/float scope)
+          yscale (mem/alloc-instance ::mem/float scope)]
+      (glfw-get-monitor-content-scale
+       monitor
+       (mem/address-of xscale)
+       (mem/address-of yscale))
+      [(mem/deserialize-from xscale ::mem/float) (mem/deserialize-from xscale ::mem/float)])))
+
+(defcfn get-monitor-name
+  "Gets a human-readable, non-unique name for the `monitor`."
+  "glfwGetMonitorName" [::monitor] ::mem/c-string)
+
+(defcfn set-monitor-user-pointer
+  "Sets a user-defined pointer for the `monitor`.
+
+  Useful when code needs to rely on the monitor but not on global state."
+  "glfwSetMonitorUserPointer" [::monitor ::mem/pointer] ::mem/void)
+
+(defcfn get-monitor-user-pointer
+  "Gets the user-defined pointer for the `monitor`."
+  "glfwGetMonitorUserPointer" [::monitor] ::mem/pointer)
+
+(defmethod mem/primitive-type ::monitor-event
+  [_type]
+  ::mem/int)
+
+(defmethod mem/deserialize* ::monitor-event
+  [obj _type]
+  (case obj
+    0x00040001 :connected
+    0x00040002 :disconnected))
+
+(defalias ::monitor-fn [::ffi/fn [::monitor ::monitor-event] ::mem/void])
+
+(defcfn set-monitor-callback
+  "Set a callback to be called whenever the monitor configuration changes.
+
+  The callback is a function of a monitor and one of `:connected` or
+  `:disconnected`."
+  "glfwSetMonitorCallback" [::monitor-fn] ::monitor-fn
+  glfw-set-monitor-callback
+  ([callback]
+   (set-monitor-callback callback (mem/global-scope)))
+  ([callback scope]
+   (mem/deserialize*
+    (glfw-set-monitor-callback
+     (mem/serialize* callback ::monitor-fn scope))
+    ::monitor-fn)))
+
+(defalias ::vidmode
+  [::mem/struct
+   [[:width ::mem/int]
+    [:height ::mem/int]
+    [:red-bits ::mem/int]
+    [:green-bits ::mem/int]
+    [:blue-bits ::mem/int]
+    [:refresh-rate ::mem/int]]])
+
+(defcfn get-video-modes
+  "Get all video modes supported by the `monitor`.
+
+  Each video mode is a map with the keys `:width`, `:height`, `:red-bits`,
+  `:green-bits`, `:blue-bits`, and `:refresh-rate`, all of which are integer
+  values."
+  "glfwGetVideoModes" [::monitor ::mem/pointer] ::mem/pointer
+  glfw-get-video-modes
+  [monitor]
+  (with-open [scope (mem/stack-scope)]
+    (let [count (mem/alloc-instance ::mem/int scope)
+          vidmodes (glfw-get-video-modes monitor (mem/address-of count))
+          count (mem/deserialize-from count ::mem/int)
+          vidmodes (mem/slice-global vidmodes (mem/size-of [::mem/array ::vidmode count]))]
+      (mem/seq-of ::vidmode vidmodes))))
+
+(defcfn get-video-mode
+  "Get the current video mode set on the `monitor`.
+
+  See [[get-video-modes]]."
+  "glfwGetVideoMode" [::monitor] [::mem/pointer ::vidmode])
+
+(defcfn set-gamma
+  "Generates an appropriately sized gamma ramp for the exponent and
+  calls [[set-gamma-ramp]] with it."
+  {:arglists '([monitor gamma])}
+  "glfwSetGamma" [::monitor ::mem/float] ::mem/void)
+
+(def ^:private gamma-ramp-type
+  [::mem/struct
+   [[:red ::mem/pointer]
+    [:green ::mem/pointer]
+    [:blue ::mem/pointer]
+    [:size ::mem/int]
+    [:padding [::mem/padding 4]]]])
+
+(defmethod mem/c-layout ::gamma-ramp
+  [_type]
+  (mem/c-layout gamma-ramp-type))
+
+(defmethod mem/serialize-into ::gamma-ramp
+  [obj _type segment scope]
+  (let [size (count obj)
+        reds (mem/serialize (map :red obj) [::mem/array ::mem/short size] scope)
+        greens (mem/serialize (map :green obj) [::mem/array ::mem/short size] scope)
+        blues (mem/serialize (map :blue obj) [::mem/array ::mem/short size] scope)]
+    (mem/serialize-into
+     {:red (mem/address-of reds)
+      :green (mem/address-of greens)
+      :blue (mem/address-of blues)
+      :size size}
+     gamma-ramp-type
+     segment
+     scope)))
+
+(defmethod mem/deserialize-from ::gamma-ramp
+  [segment _type]
+  (let [struct (mem/deserialize-from segment gamma-ramp-type)
+        size (:size struct)
+        reds (mem/deserialize (:red struct)
+                              [::mem/pointer [::mem/array ::mem/short size]])
+        greens (mem/deserialize (:green struct)
+                                [::mem/pointer [::mem/array ::mem/short size]])
+        blues (mem/deserialize (:blue struct)
+                               [::mem/pointer [::mem/array ::mem/short size]])]
+    (map (fn [red green blue]
+           {:red (Short/toUnsignedInt red)
+            :green (Short/toUnsignedInt green)
+            :blue (Short/toUnsignedInt blue)})
+         reds greens blues)))
+
+(defcfn get-gamma-ramp
+  "Gets the gamma ramp for the `monitor`.
+
+  The gamma ramp is a sequence of maps with the keys `:red`, `:green`, and
+  `:blue`, all of which map to unsigned shorts."
+  "glfwGetGammaRamp" [::monitor] [::mem/pointer ::gamma-ramp])
+
+(defcfn set-gamma-ramp
+  "Sets the gamma ramp for the `monitor`.
+
+  See [[get-gamma-ramp]]."
+  {:arglists '([monitor gamma-ramp])}
+  "glfwSetGammaRamp" [::monitor [::mem/pointer ::gamma-ramp]] ::mem/void)
