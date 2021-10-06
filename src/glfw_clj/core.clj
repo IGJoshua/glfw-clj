@@ -126,7 +126,7 @@
     (let [description (mem/alloc-instance ::mem/pointer scope)
           error-code (glfw-get-error (mem/address-of description))
           description-str (mem/deserialize-from description ::mem/c-string)]
-      (when-not (= :no-error error-code)
+      (when-not (identical? :no-error error-code)
         (ex-info description-str {:type error-code})))))
 
 (defalias ::error-fn [::ffi/fn [::error-code ::mem/c-string] ::mem/void])
@@ -279,7 +279,7 @@
        :context-robustness (keyword->context-robustness (or value :no-robustness))
        :context-release-behavior (keyword->release-behavior (or value :any))
        :opengl-profile (keyword->opengl-profile (or value :any))
-       (if (= :dont-care value)
+       (if (identical? :dont-care value)
          -1
          value)))))
 
@@ -397,7 +397,7 @@
   [window min-width min-height max-width max-height]
   (apply glfw-set-window-size-limits
          window
-         (map #(if (= :dont-care %) -1 %) [min-width min-height max-width max-height])))
+         (map #(if (identical? :dont-care %) -1 %) [min-width min-height max-width max-height])))
 
 (defcfn set-window-aspect-ratio
   "Sets a required aspect ratio of the content area of the `window`.
@@ -547,7 +547,7 @@
      (set-window-monitor window nil monitor-or-x arg1 arg2 arg3 :dont-care)))
   ([window monitor x-pos y-pos width height refresh-rate]
    (glfw-set-window-monitor window monitor x-pos y-pos width height
-                            (if (= :dont-care refresh-rate) -1 refresh-rate))))
+                            (if (identical? :dont-care refresh-rate) -1 refresh-rate))))
 
 (defcfn get-window-attrib
   "Gets the current value of `attrib` from the `window`.
@@ -582,7 +582,7 @@
    attrib
    (if (boolean-window-hints attrib)
      (if value 1 0)
-     (if (= :dont-care value)
+     (if (identical? :dont-care value)
        -1
        value))))
 
