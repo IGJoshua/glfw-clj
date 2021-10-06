@@ -58,10 +58,7 @@
 (defcfn init-hint
   "Sets the given `hint` with the boolean `value`.
 
-  The `hint` must be one of the following:
-  - `:joystick-hat-buttons`
-  - `:cocoa-chdir-resources`
-  - `:cocoa-menubar`
+  The `hint` must be one of the values from [[init-hints]].
 
   Hints starting with `:cocoa` are MacOS-specific.
 
