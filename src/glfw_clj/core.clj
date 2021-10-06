@@ -89,7 +89,7 @@
   This can be called on any thread, and before [[init]]."
   "glfwGetVersionString" [] ::mem/c-string)
 
-(def ^:private error-code->keyword
+(def ^:private enum->error-code
   "Map from error code enums to keywords naming the errors."
   {0x00000000 :no-error
    0x00010001 :not-initialized
@@ -109,7 +109,7 @@
 
 (defmethod mem/deserialize* ::error-code
   [obj _type]
-  (error-code->keyword obj))
+  (enum->error-code obj))
 
 (defcfn get-error
   "Gets the most recent error which has occurred on this thread.
@@ -229,40 +229,40 @@
   [m]
   (into {} (map (comp vec reverse)) m))
 
-(def ^:private keyword->client-api
+(def ^:private client-api->enum
   {:opengl 0x00030001
    :opengl-es 0x00030002
    :none 0})
-(def ^:private client-api->keyword (reverse-map keyword->client-api))
-(def client-api-opts (set (keys keyword->client-api)))
+(def ^:private enum->client-api (reverse-map client-api->enum))
+(def client-api-opts (set (keys client-api->enum)))
 
-(def ^:private keyword->context-api
+(def ^:private context-api->enum
   {:native 0x00036001
    :egl 0x00036002
    :osmesa 0x00036003})
-(def ^:private context-api->keyword (reverse-map keyword->context-api))
-(def context-api-opts (set (keys keyword->context-api)))
+(def ^:private enum->context-api (reverse-map context-api->enum))
+(def context-api-opts (set (keys context-api->enum)))
 
-(def ^:private keyword->context-robustness
+(def ^:private context-robustness->enum
   {:no-robustness 0
    :no-reset-notification 0x00031001
    :lose-context-on-reset 0x00031002})
-(def ^:private context-robustness->keyword (reverse-map keyword->context-robustness))
-(def context-robustness-opts (set (keys keyword->context-robustness)))
+(def ^:private enum->context-robustness (reverse-map context-robustness->enum))
+(def context-robustness-opts (set (keys context-robustness->enum)))
 
-(def ^:private keyword->release-behavior
+(def ^:private release-behavior->enum
   {:any 0
    :none 0x00035002
    :flush 0x00035001})
-(def ^:private release-behavior->keyword (reverse-map keyword->release-behavior))
-(def release-behavior-opts (set (keys keyword->release-behavior)))
+(def ^:private enum->release-behavior (reverse-map release-behavior->enum))
+(def release-behavior-opts (set (keys release-behavior->enum)))
 
-(def ^:private keyword->opengl-profile
+(def ^:private opengl-profile->enum
   {:any 0
    :core 0x00032001
    :compat 0x00032002})
-(def ^:private opengl-profile->keyword (reverse-map keyword->opengl-profile))
-(def opengl-profile-opts (set (keys keyword->opengl-profile)))
+(def ^:private enum->opengl-profile (reverse-map opengl-profile->enum))
+(def opengl-profile-opts (set (keys opengl-profile->enum)))
 
 (defcfn window-hint
   "Sets a window hint for the next window to be created."
@@ -274,11 +274,11 @@
    (if (boolean-window-hints hint)
      (if value 1 0)
      (case value
-       :client-api (keyword->client-api (or value :opengl))
-       :context-creation-api (keyword->context-api (or value :native))
-       :context-robustness (keyword->context-robustness (or value :no-robustness))
-       :context-release-behavior (keyword->release-behavior (or value :any))
-       :opengl-profile (keyword->opengl-profile (or value :any))
+       :client-api (client-api->enum (or value :opengl))
+       :context-creation-api (context-api->enum (or value :native))
+       :context-robustness (context-robustness->enum (or value :no-robustness))
+       :context-release-behavior (release-behavior->enum (or value :any))
+       :opengl-profile (opengl-profile->enum (or value :any))
        (if (identical? :dont-care value)
          -1
          value)))))
@@ -560,11 +560,11 @@
     (if (boolean-window-hints attrib)
       (not (zero? res))
       (case attrib
-        :client-api (client-api->keyword res)
-        :context-creation-api (context-api->keyword res)
-        :context-robustness (context-robustness->keyword res)
-        :context-release-behavior (release-behavior->keyword res)
-        :opengl-profile (opengl-profile->keyword res)
+        :client-api (enum->client-api res)
+        :context-creation-api (enum->context-api res)
+        :context-robustness (enum->context-robustness res)
+        :context-release-behavior (enum->release-behavior res)
+        :opengl-profile (enum->opengl-profile res)
         (if (= -1 res)
           :dont-care
           res)))))
