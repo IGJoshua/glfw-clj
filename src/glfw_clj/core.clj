@@ -1,4 +1,5 @@
 (ns glfw-clj.core
+  (:refer-clojure :rename {keys map-keys})
   (:require
    [coffi.mem :as mem :refer [defalias]]
    [coffi.ffi :as ffi :refer [defcfn]]))
@@ -30,7 +31,7 @@
   {::joystick-hat-buttons (int 0x00050001)
    ::cocoa-chdir-resources (int 0x00051001)
    ::cocoa-menubar (int 0x00051002)})
-(def init-hints (set (keys init-hint->enum)))
+(def init-hints (set (map-keys init-hint->enum)))
 
 (defmethod mem/primitive-type ::init-hint
   [_type]
@@ -200,7 +201,7 @@
    ::cocoa-graphics-switching (int 0x00023003)
    ::x11-class-name (int 0x00024001)
    ::x11-instance-name (int 0x00024002)})
-(def window-hints (set (keys window-hint->enum)))
+(def window-hints (set (map-keys window-hint->enum)))
 
 (def ^:private boolean-window-hints
   #{::resizable ::visible ::decorated ::focused
@@ -232,35 +233,35 @@
    ::opengl-es-api 0x00030002
    ::no-api 0})
 (def ^:private enum->client-api (reverse-map client-api->enum))
-(def client-api-opts (set (keys client-api->enum)))
+(def client-api-opts (set (map-keys client-api->enum)))
 
 (def ^:private context-api->enum
   {::native-context-api 0x00036001
    ::egl-context-api 0x00036002
    ::osmesa-context-api 0x00036003})
 (def ^:private enum->context-api (reverse-map context-api->enum))
-(def context-api-opts (set (keys context-api->enum)))
+(def context-api-opts (set (map-keys context-api->enum)))
 
 (def ^:private context-robustness->enum
   {::no-robustness 0
    ::no-reset-notification 0x00031001
    ::lose-context-on-reset 0x00031002})
 (def ^:private enum->context-robustness (reverse-map context-robustness->enum))
-(def context-robustness-opts (set (keys context-robustness->enum)))
+(def context-robustness-opts (set (map-keys context-robustness->enum)))
 
 (def ^:private release-behavior->enum
   {::any-release-behavior 0
    ::release-behavior-none 0x00035002
    ::release-behavior-flush 0x00035001})
 (def ^:private enum->release-behavior (reverse-map release-behavior->enum))
-(def release-behavior-opts (set (keys release-behavior->enum)))
+(def release-behavior-opts (set (map-keys release-behavior->enum)))
 
 (def ^:private opengl-profile->enum
   {::opengl-any-profile 0
    ::opengl-core-profile 0x00032001
    ::opengl-compat-profile 0x00032002})
 (def ^:private enum->opengl-profile (reverse-map opengl-profile->enum))
-(def opengl-profile-opts (set (keys opengl-profile->enum)))
+(def opengl-profile-opts (set (map-keys opengl-profile->enum)))
 
 (defcfn window-hint
   "Sets a window hint for the next window to be created."
