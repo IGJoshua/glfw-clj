@@ -3,9 +3,6 @@
    [coffi.mem :as mem :refer [defalias]]
    [coffi.ffi :as ffi :refer [defcfn]]))
 
-;; TODO(Joshua): Consider making all the enum keywords into prefixed ones. Maybe
-;; even qualified? e.g. `::glfw/opengl-any-profile`.
-
 (ffi/load-system-library "glfw")
 
 ;;; Initialization and Error Handling
@@ -30,9 +27,9 @@
 
 (def ^:private init-hint->enum
   "Map from hint keywords to the enum values they represent."
-  {:joystick-hat-buttons (int 0x00050001)
-   :cocoa-chdir-resources (int 0x00051001)
-   :cocoa-menubar (int 0x00051002)})
+  {::joystick-hat-buttons (int 0x00050001)
+   ::cocoa-chdir-resources (int 0x00051001)
+   ::cocoa-menubar (int 0x00051002)})
 (def init-hints (set (keys init-hint->enum)))
 
 (defmethod mem/primitive-type ::init-hint
@@ -91,17 +88,18 @@
 
 (def ^:private enum->error-code
   "Map from error code enums to keywords naming the errors."
-  {0x00000000 :no-error
-   0x00010001 :not-initialized
-   0x00010002 :no-current-context
-   0x00010003 :invalid-enum
-   0x00010004 :invalid-value
-   0x00010005 :out-of-memory
-   0x00010006 :api-unavailable
-   0x00010007 :version-unavailable
-   0x00010008 :platform-error
-   0x00010009 :format-unavailable
-   0x0001000A :no-window-context})
+  {0x00000000 ::no-error
+   0x00010001 ::not-initialized
+   0x00010002 ::no-current-context
+   0x00010003 ::invalid-enum
+   0x00010004 ::invalid-value
+   0x00010005 ::out-of-memory
+   0x00010006 ::api-unavailable
+   0x00010007 ::version-unavailable
+   0x00010008 ::platform-error
+   0x00010009 ::format-unavailable
+   0x0001000A ::no-window-context})
+(def error-codes (vals enum->error-code))
 
 (defmethod mem/primitive-type ::error-code
   [_type]
@@ -126,7 +124,7 @@
     (let [description (mem/alloc-instance ::mem/pointer scope)
           error-code (glfw-get-error (mem/address-of description))
           description-str (mem/deserialize-from description ::mem/c-string)]
-      (when-not (identical? :no-error error-code)
+      (when-not (identical? ::no-error error-code)
         (ex-info description-str {:type error-code})))))
 
 (defalias ::error-fn [::ffi/fn [::error-code ::mem/c-string] ::mem/void])
@@ -157,60 +155,60 @@
 
 (def ^:private window-hint->enum
   "Map from window creation hints and attributes to their enum values."
-  {:focused (int 0x00020001)
-   :iconified (int 0x00020002)
-   :resizable (int 0x00020003)
-   :visible (int 0x00020004)
-   :decorated (int 0x00020005)
-   :auto-iconify (int 0x00020006)
-   :floating (int 0x00020007)
-   :maximized (int 0x00020008)
-   :center-cursor (int 0x00020009)
-   :transparent-framebuffer (int 0x0002000A)
-   :hovered (int 0x0002000B)
-   :focus-on-show (int 0x0002000C)
-   :red-bits (int 0x00021001)
-   :green-bits (int 0x00021002)
-   :blue-bits (int 0x00021003)
-   :alpha-bits (int 0x00021004)
-   :depth-bits (int 0x00021005)
-   :stencil-bits (int 0x00021006)
-   :accum-red-bits (int 0x00021007)
-   :accum-green-bits (int 0x00021008)
-   :accum-blue-bits (int 0x00021009)
-   :accum-alpha-bits (int 0x0002100A)
-   :aux-buffers (int 0x0002100B)
-   :stereo (int 0x0002100C)
-   :samples (int 0x0002100D)
-   :srgb-capable (int 0x0002100E)
-   :refresh-rate (int 0x0002100F)
-   :doublebuffer (int 0x00021010)
-   :client-api (int 0x00022001)
-   :context-version-major (int 0x00022002)
-   :context-version-minor (int 0x00022003)
-   :context-revision (int 0x00022004)
-   :context-robustness (int 0x00022005)
-   :opengl-forward-compat (int 0x00022006)
-   :opengl-debug-context (int 0x00022007)
-   :opengl-profile (int 0x00022008)
-   :context-release-behavior (int 0x00022009)
-   :context-no-error (int 0x0002200A)
-   :context-creation-api (int 0x0002200B)
-   :scale-to-monitor (int 0x0002200C)
-   :cocoa-retina-framebuffer (int 0x00023001)
-   :cocoa-frame-name (int 0x00023002)
-   :cocoa-graphics-switching (int 0x00023003)
-   :x11-class-name (int 0x00024001)
-   :x11-instance-name (int 0x00024002)})
+  {::focused (int 0x00020001)
+   ::iconified (int 0x00020002)
+   ::resizable (int 0x00020003)
+   ::visible (int 0x00020004)
+   ::decorated (int 0x00020005)
+   ::auto-iconify (int 0x00020006)
+   ::floating (int 0x00020007)
+   ::maximized (int 0x00020008)
+   ::center-cursor (int 0x00020009)
+   ::transparent-framebuffer (int 0x0002000A)
+   ::hovered (int 0x0002000B)
+   ::focus-on-show (int 0x0002000C)
+   ::red-bits (int 0x00021001)
+   ::green-bits (int 0x00021002)
+   ::blue-bits (int 0x00021003)
+   ::alpha-bits (int 0x00021004)
+   ::depth-bits (int 0x00021005)
+   ::stencil-bits (int 0x00021006)
+   ::accum-red-bits (int 0x00021007)
+   ::accum-green-bits (int 0x00021008)
+   ::accum-blue-bits (int 0x00021009)
+   ::accum-alpha-bits (int 0x0002100A)
+   ::aux-buffers (int 0x0002100B)
+   ::stereo (int 0x0002100C)
+   ::samples (int 0x0002100D)
+   ::srgb-capable (int 0x0002100E)
+   ::refresh-rate (int 0x0002100F)
+   ::doublebuffer (int 0x00021010)
+   ::client-api (int 0x00022001)
+   ::context-version-major (int 0x00022002)
+   ::context-version-minor (int 0x00022003)
+   ::context-revision (int 0x00022004)
+   ::context-robustness (int 0x00022005)
+   ::opengl-forward-compat (int 0x00022006)
+   ::opengl-debug-context (int 0x00022007)
+   ::opengl-profile (int 0x00022008)
+   ::context-release-behavior (int 0x00022009)
+   ::context-no-error (int 0x0002200A)
+   ::context-creation-api (int 0x0002200B)
+   ::scale-to-monitor (int 0x0002200C)
+   ::cocoa-retina-framebuffer (int 0x00023001)
+   ::cocoa-frame-name (int 0x00023002)
+   ::cocoa-graphics-switching (int 0x00023003)
+   ::x11-class-name (int 0x00024001)
+   ::x11-instance-name (int 0x00024002)})
 (def window-hints (set (keys window-hint->enum)))
 
 (def ^:private boolean-window-hints
-  #{:resizable :visible :decorated :focused
-    :auto-iconify :floating :maximized :center-cursor
-    :transparent-framebuffer :focus-on-show :scale-to-monitor
-    :stereo :srgb-capable :doublebuffer
-    :opengl-forward-compat :opengl-debug-context
-    :cocoa-retina-framebuffer :cocoa-graphics-switching})
+  #{::resizable ::visible ::decorated ::focused
+    ::auto-iconify ::floating ::maximized ::center-cursor
+    ::transparent-framebuffer ::focus-on-show ::scale-to-monitor
+    ::stereo ::srgb-capable ::doublebuffer
+    ::opengl-forward-compat ::opengl-debug-context
+    ::cocoa-retina-framebuffer ::cocoa-graphics-switching})
 
 (defmethod mem/primitive-type ::window-hint
   [_type]
@@ -230,37 +228,37 @@
   (into {} (map (comp vec reverse)) m))
 
 (def ^:private client-api->enum
-  {:opengl 0x00030001
-   :opengl-es 0x00030002
-   :none 0})
+  {::opengl-api 0x00030001
+   ::opengl-es-api 0x00030002
+   ::no-api 0})
 (def ^:private enum->client-api (reverse-map client-api->enum))
 (def client-api-opts (set (keys client-api->enum)))
 
 (def ^:private context-api->enum
-  {:native 0x00036001
-   :egl 0x00036002
-   :osmesa 0x00036003})
+  {::native-context-api 0x00036001
+   ::egl-context-api 0x00036002
+   ::osmesa-context-api 0x00036003})
 (def ^:private enum->context-api (reverse-map context-api->enum))
 (def context-api-opts (set (keys context-api->enum)))
 
 (def ^:private context-robustness->enum
-  {:no-robustness 0
-   :no-reset-notification 0x00031001
-   :lose-context-on-reset 0x00031002})
+  {::no-robustness 0
+   ::no-reset-notification 0x00031001
+   ::lose-context-on-reset 0x00031002})
 (def ^:private enum->context-robustness (reverse-map context-robustness->enum))
 (def context-robustness-opts (set (keys context-robustness->enum)))
 
 (def ^:private release-behavior->enum
-  {:any 0
-   :none 0x00035002
-   :flush 0x00035001})
+  {::any-release-behavior 0
+   ::release-behavior-none 0x00035002
+   ::release-behavior-flush 0x00035001})
 (def ^:private enum->release-behavior (reverse-map release-behavior->enum))
 (def release-behavior-opts (set (keys release-behavior->enum)))
 
 (def ^:private opengl-profile->enum
-  {:any 0
-   :core 0x00032001
-   :compat 0x00032002})
+  {::opengl-any-profile 0
+   ::opengl-core-profile 0x00032001
+   ::opengl-compat-profile 0x00032002})
 (def ^:private enum->opengl-profile (reverse-map opengl-profile->enum))
 (def opengl-profile-opts (set (keys opengl-profile->enum)))
 
@@ -274,12 +272,12 @@
    (if (boolean-window-hints hint)
      (if value 1 0)
      (case value
-       :client-api (client-api->enum (or value :opengl))
-       :context-creation-api (context-api->enum (or value :native))
-       :context-robustness (context-robustness->enum (or value :no-robustness))
-       :context-release-behavior (release-behavior->enum (or value :any))
-       :opengl-profile (opengl-profile->enum (or value :any))
-       (if (identical? :dont-care value)
+       ::client-api (client-api->enum (or value ::opengl-api))
+       ::context-creation-api (context-api->enum (or value ::native-context-api))
+       ::context-robustness (context-robustness->enum (or value ::no-robustness))
+       ::context-release-behavior (release-behavior->enum (or value ::any-release-behavior))
+       ::opengl-profile (opengl-profile->enum (or value ::opengl-any-profile))
+       (if (identical? ::dont-care value)
          -1
          value)))))
 
@@ -397,7 +395,7 @@
   [window min-width min-height max-width max-height]
   (apply glfw-set-window-size-limits
          window
-         (map #(if (identical? :dont-care %) -1 %) [min-width min-height max-width max-height])))
+         (map #(if (identical? ::dont-care %) -1 %) [min-width min-height max-width max-height])))
 
 (defcfn set-window-aspect-ratio
   "Sets a required aspect ratio of the content area of the `window`.
@@ -437,7 +435,9 @@
 
   Returns a vector of the pixel lengths of the left, top, right, and bottom
   edges of the window."
-  "glfwGetWindowFrameSize" [::window ::mem/pointer ::mem/pointer ::mem/pointer ::mem/pointer] ::mem/void
+  "glfwGetWindowFrameSize"
+  [::window ::mem/pointer ::mem/pointer ::mem/pointer ::mem/pointer]
+  ::mem/void
   glfw-get-window-frame-size
   [window]
   (with-open [scope (mem/stack-scope)]
@@ -560,13 +560,13 @@
     (if (boolean-window-hints attrib)
       (not (zero? res))
       (case attrib
-        :client-api (enum->client-api res)
-        :context-creation-api (enum->context-api res)
-        :context-robustness (enum->context-robustness res)
-        :context-release-behavior (enum->release-behavior res)
-        :opengl-profile (enum->opengl-profile res)
+        ::client-api (enum->client-api res)
+        ::context-creation-api (enum->context-api res)
+        ::context-robustness (enum->context-robustness res)
+        ::context-release-behavior (enum->release-behavior res)
+        ::opengl-profile (enum->opengl-profile res)
         (if (= -1 res)
-          :dont-care
+          ::dont-care
           res)))))
 
 (defcfn set-window-attrib
@@ -582,7 +582,7 @@
    attrib
    (if (boolean-window-hints attrib)
      (if value 1 0)
-     (if (identical? :dont-care value)
+     (if (identical? ::dont-care value)
        -1
        value))))
 
@@ -987,8 +987,8 @@
 (defmethod mem/deserialize* ::monitor-event
   [obj _type]
   (case obj
-    0x00040001 :connected
-    0x00040002 :disconnected))
+    0x00040001 ::connected
+    0x00040002 ::disconnected))
 
 (defalias ::monitor-fn [::ffi/fn [::monitor ::monitor-event] ::mem/void])
 
