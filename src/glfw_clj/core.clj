@@ -3,6 +3,9 @@
    [coffi.mem :as mem :refer [defalias]]
    [coffi.ffi :as ffi :refer [defcfn]]))
 
+;; TODO(Joshua): Consider making all the enum keywords into prefixed ones. Maybe
+;; even qualified? e.g. `::glfw/opengl-any-profile`.
+
 (ffi/load-system-library "glfw")
 
 ;;; Initialization and Error Handling
