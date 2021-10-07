@@ -78,6 +78,32 @@
                :docstring string?
                :fn-type ::mem/type))
 
+(defmacro ^:private with-out-args
+  {:style/indent 1}
+  [bindings expr]
+  (let [segments (repeatedly (/ (count bindings) 2)
+                             #(gensym "segment"))
+        scope (gensym "scope")]
+    `(with-open [~scope (mem/stack-scope)]
+       (let [~@(->> bindings
+                    (partition 2)
+                    (map (partial apply vector) segments)
+                    (mapcat (fn [[segment binding type]]
+                              [segment `(mem/alloc-instance ~type ~scope)
+                               binding `(mem/address-of ~segment)])))]
+         ~expr
+         [~@(->> bindings
+                 (partition 2)
+                 (map second)
+                 (map (fn [segment type]
+                        `(mem/deserialize-from ~segment ~type))
+                      segments))]))))
+(s/fdef with-out-args
+  :args (s/cat :bindings (s/and (s/* (s/cat :binding simple-symbol?
+                                            :type ::mem/type))
+                                vector?)
+               :expr any?))
+
 (ffi/load-system-library "glfw")
 
 ;;; Initialization and Error Handling
@@ -134,14 +160,10 @@
   "glfwGetVersion" [::mem/pointer ::mem/pointer ::mem/pointer] ::mem/void
   glfw-get-version
   []
-  (with-open [scope (mem/stack-scope)]
-    (let [major (mem/alloc-instance ::mem/int scope)
-          minor (mem/alloc-instance ::mem/int scope)
-          rev (mem/alloc-instance ::mem/int scope)]
-      (glfw-get-version (mem/address-of major)
-                        (mem/address-of minor)
-                        (mem/address-of rev))
-      (mapv #(mem/deserialize-from % ::mem/int) [major minor rev]))))
+  (with-out-args [major ::mem/int
+                  minor ::mem/int
+                  rev ::mem/int]
+    (glfw-get-version major minor rev)))
 
 (defcfn get-version-string
   "Gets a string of the version of GLFW.
@@ -396,11 +418,9 @@
   "glfwGetWindowPos" [::window ::mem/pointer ::mem/pointer] ::mem/void
   glfw-get-window-pos
   [window]
-  (with-open [scope (mem/stack-scope)]
-    (let [xpos (mem/alloc-instance ::mem/int scope)
-          ypos (mem/alloc-instance ::mem/int scope)]
-      (glfw-get-window-pos window (mem/address-of xpos) (mem/address-of ypos))
-      [(mem/deserialize-from xpos ::mem/int) (mem/deserialize-from ypos ::mem/int)])))
+  (with-out-args [xpos ::mem/int
+                  ypos ::mem/int]
+    (glfw-get-window-pos window xpos ypos)))
 
 (defcfn set-window-pos
   "Sets the `x` and `y` positions of the given `window`."
@@ -412,11 +432,9 @@
   "glfwGetWindowSize" [::window ::mem/pointer ::mem/pointer] ::mem/void
   glfw-get-window-size
   [window]
-  (with-open [scope (mem/stack-scope)]
-    (let [width (mem/alloc-instance ::mem/int scope)
-          height (mem/alloc-instance ::mem/int scope)]
-      (glfw-get-window-size window (mem/address-of width) (mem/address-of height))
-      [(mem/deserialize-from width ::mem/int) (mem/deserialize-from height ::mem/int)])))
+  (with-out-args [width ::mem/int
+                  height ::mem/int]
+    (glfw-get-window-size window width height)))
 
 (defcfn set-window-size-limits
   "Sets the size limits of the content area of the window"
@@ -454,11 +472,9 @@
   "glfwGetFramebufferSize" [::window ::mem/pointer ::mem/pointer] ::mem/void
   glfw-get-framebuffer-size
   [window]
-  (with-open [scope (mem/stack-scope)]
-    (let [width (mem/alloc-instance ::mem/int scope)
-          height (mem/alloc-instance ::mem/int scope)]
-      (glfw-get-framebuffer-size window (mem/address-of width) (mem/address-of height))
-      [(mem/deserialize-from width ::mem/int) (mem/deserialize-from height ::mem/int)])))
+  (with-out-args [width ::mem/int
+                  height ::mem/int]
+    (glfw-get-framebuffer-size window width height)))
 
 (defcfn get-window-frame-size
   "Gets the size of the `window` (including decorations).
@@ -470,20 +486,11 @@
   ::mem/void
   glfw-get-window-frame-size
   [window]
-  (with-open [scope (mem/stack-scope)]
-    (let [left (mem/alloc-instance ::mem/int scope)
-          top (mem/alloc-instance ::mem/int scope)
-          right (mem/alloc-instance ::mem/int scope)
-          bottom (mem/alloc-instance ::mem/int scope)]
-      (glfw-get-window-frame-size window
-                                  (mem/address-of left)
-                                  (mem/address-of top)
-                                  (mem/address-of right)
-                                  (mem/address-of bottom))
-      [(mem/deserialize-from left ::mem/int)
-       (mem/deserialize-from top ::mem/int)
-       (mem/deserialize-from right ::mem/int)
-       (mem/deserialize-from bottom ::mem/int)])))
+  (with-out-args [left ::mem/int
+                  top ::mem/int
+                  right ::mem/int
+                  bottom ::mem/int]
+    (glfw-get-window-frame-size window left top right bottom)))
 
 (defcfn get-window-content-scale
   "Gets the current content scale for the given `window`.
@@ -492,11 +499,9 @@
   "glfwGetWindowContentScale" [::window ::mem/pointer ::mem/pointer] ::mem/void
   glfw-get-window-content-scale
   [window]
-  (with-open [scope (mem/stack-scope)]
-    (let [x-scale (mem/alloc-instance ::mem/float scope)
-          y-scale (mem/alloc-instance ::mem/float scope)]
-      (glfw-get-window-content-scale window (mem/address-of x-scale) (mem/address-of y-scale))
-      [(mem/deserialize-from x-scale ::mem/float) (mem/deserialize-from y-scale ::mem/float)])))
+  (with-out-args [x-scale ::mem/float
+                  y-scale ::mem/float]
+    (glfw-get-window-content-scale window x-scale y-scale)))
 
 (defcfn get-window-opacity
   "Gets the opacity of the `window`, including any decorations."
@@ -847,11 +852,9 @@
   "glfwGetMonitorPos" [::monitor ::mem/pointer ::mem/pointer] ::mem/void
   glfw-get-monitor-pos
   [monitor]
-  (with-open [scope (mem/stack-scope)]
-    (let [xpos (mem/alloc-instance ::mem/int scope)
-          ypos (mem/alloc-instance ::mem/int scope)]
-      (glfw-get-monitor-pos monitor (mem/address-of xpos) (mem/address-of ypos))
-      [(mem/deserialize-from xpos ::mem/int) (mem/deserialize-from ypos ::mem/int)])))
+  (with-out-args [xpos ::mem/int
+                  ypos ::mem/int]
+    (glfw-get-monitor-pos monitor xpos ypos)))
 
 (defcfn get-monitor-workarea
   "Gets the upper left point and extents of the `monitor`'s work area.
@@ -868,21 +871,11 @@
   ::mem/void
   glfw-get-monitor-workarea
   [monitor]
-  (with-open [scope (mem/stack-scope)]
-    (let [xpos (mem/alloc-instance ::mem/int scope)
-          ypos (mem/alloc-instance ::mem/int scope)
-          width (mem/alloc-instance ::mem/int scope)
-          height (mem/alloc-instance ::mem/int scope)]
-      (glfw-get-monitor-workarea
-       monitor
-       (mem/address-of xpos)
-       (mem/address-of ypos)
-       (mem/address-of width)
-       (mem/address-of height))
-      [(mem/deserialize-from xpos ::mem/int)
-       (mem/deserialize-from ypos ::mem/int)
-       (mem/deserialize-from width ::mem/int)
-       (mem/deserialize-from height ::mem/int)])))
+  (with-out-args [xpos ::mem/int
+                  ypos ::mem/int
+                  width ::mem/int
+                  height ::mem/int]
+    (glfw-get-monitor-workarea monitor xpos ypos width height)))
 
 (defcfn get-monitor-physical-size
   "Gets the size of the `monitor` in millimeters.
@@ -891,12 +884,9 @@
   "glfwGetMonitorPhysicalSize" [::monitor ::mem/pointer ::mem/pointer] ::mem/void
   glfw-get-monitor-physical-size
   [monitor]
-  (with-open [scope (mem/stack-scope)]
-    (let [width (mem/alloc-instance ::mem/int scope)
-          height (mem/alloc-instance ::mem/int scope)]
-      (glfw-get-monitor-physical-size monitor (mem/address-of width) (mem/address-of height))
-      [(mem/deserialize-from width ::mem/int)
-       (mem/deserialize-from height ::mem/int)])))
+  (with-out-args [width ::mem/int
+                  height ::mem/int]
+    (glfw-get-monitor-physical-size monitor width height)))
 
 (defcfn get-monitor-content-scale
   "Gets the x and y scale of the content in the `monitor`.
@@ -906,14 +896,9 @@
   "glfwGetMonitorContentScale" [::monitor ::mem/pointer ::mem/pointer] ::mem/void
   glfw-get-monitor-content-scale
   [monitor]
-  (with-open [scope (mem/stack-scope)]
-    (let [xscale (mem/alloc-instance ::mem/float scope)
-          yscale (mem/alloc-instance ::mem/float scope)]
-      (glfw-get-monitor-content-scale
-       monitor
-       (mem/address-of xscale)
-       (mem/address-of yscale))
-      [(mem/deserialize-from xscale ::mem/float) (mem/deserialize-from xscale ::mem/float)])))
+  (with-out-args [xscale ::mem/float
+                  yscale ::mem/float]
+    (glfw-get-monitor-content-scale monitor xscale yscale)))
 
 (defcfn get-monitor-name
   "Gets a human-readable, non-unique name for the `monitor`."
