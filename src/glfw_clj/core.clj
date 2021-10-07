@@ -2,6 +2,7 @@
   (:refer-clojure :rename {keys map-keys})
   (:require
    [clojure.spec.alpha :as s]
+   [clojure.string :as str]
    [coffi.mem :as mem :refer [defalias]]
    [coffi.ffi :as ffi :refer [defcfn]]))
 
@@ -38,6 +39,44 @@
 (s/fdef defenum
   :args (s/cat :enum-name qualified-keyword?
                :val-map (s/map-of qualified-keyword? number?)))
+
+(defn ^:private camel-case
+  [s]
+  (str/replace s #"(^|-)(\S)" #(str/upper-case (nth % 2))))
+
+(defn- defcallback-body
+  [fn-name docstring fn-type extra-args]
+  (let [type-name (keyword "glfw-clj.core" (str (name fn-name) "-fn"))
+        set-var-name (symbol (str "set-" (name fn-name) "-callback"))
+        native-symbol (str "glfwSet" (camel-case (name fn-name)) "Callback")]
+    `(do
+       (defalias ~type-name ~fn-type)
+       (defcfn ~(with-meta set-var-name
+                  (meta fn-name))
+         ~docstring
+         ~native-symbol [::mem/pointer] ::mem/pointer
+         native-fn#
+         ([~@extra-args ~'callback] (~set-var-name ~@extra-args ~'callback (mem/global-scope)))
+         ([~@extra-args ~'callback ~'scope]
+          (mem/deserialize*
+           (native-fn# ~@extra-args (mem/serialize* ~'callback ~type-name ~'scope))
+           ~type-name))))))
+
+(defmacro ^:private defcallback
+  [fn-name docstring fn-type]
+  (defcallback-body fn-name docstring fn-type nil))
+(s/fdef defcallback
+  :args (s/cat :fn-name simple-symbol?
+               :docstring string?
+               :fn-type ::mem/type))
+
+(defmacro ^:private def-wnd-callback
+  [fn-name docstring fn-type]
+  (defcallback-body fn-name docstring fn-type '(window)))
+(s/fdef def-wnd-callback
+  :args (s/cat :fn-name simple-symbol?
+               :docstring string?
+               :fn-type ::mem/type))
 
 (ffi/load-system-library "glfw")
 
@@ -143,9 +182,7 @@
       (when-not (identical? ::no-error error-code)
         (ex-info description-str {:type error-code})))))
 
-(defalias ::error-fn [::ffi/fn [::error-code ::mem/c-string] ::mem/void])
-
-(defcfn set-error-callback
+(defcallback error
   "Sets the global error callback for GLFW.
 
   The callback is a function of an integer error code and a string description.
@@ -157,15 +194,7 @@
   by GLFW after the scope has been released, it will cause a JVM crash.
 
   This function may be called before [[init]]."
-  "glfwSetErrorCallback" [::mem/pointer] ::mem/pointer
-  glfw-set-error-callback
-  ([callback]
-   (set-error-callback callback (mem/global-scope)))
-  ([callback scope]
-   (mem/deserialize*
-    (glfw-set-error-callback
-     (mem/serialize* callback ::error-fn scope))
-    ::error-fn)))
+  [::ffi/fn [::error-code ::mem/c-string] ::mem/void])
 
 ;;; Window Management
 
@@ -597,9 +626,7 @@
   "Gets a user-defined pointer value associated with the `window`."
   "glfwGetWindowUserPointer" [::window] ::mem/pointer)
 
-(defalias ::window-pos-fn [::ffi/fn [::window ::mem/int ::mem/int] ::mem/void])
-
-(defcfn set-window-pos-callback
+(def-wnd-callback window-pos
   "Sets the position `callback` for the given `window`.
 
   The `callback` is a function of the window the event is from and the two ints
@@ -609,18 +636,9 @@
 
   If `scope` is passed, the callback will be kept valid for the duration of that
   scope. If it is not, a [[mem/global-scope]] is used."
-  "glfwSetWindowPosCallback" [::window ::mem/pointer] ::mem/pointer
-  glfw-set-window-pos-callback
-  ([window callback] (set-window-pos-callback window callback (mem/global-scope)))
-  ([window callback scope]
-   (mem/deserialize*
-    (glfw-set-window-pos-callback
-     window (mem/serialize* callback ::window-pos-fn scope))
-    ::window-pos-fn)))
+  [::ffi/fn [::window ::mem/int ::mem/int] ::mem/void])
 
-(defalias ::window-size-fn [::ffi/fn [::window ::mem/int ::mem/int] ::mem/void])
-
-(defcfn set-window-size-callback
+(def-wnd-callback window-size
   "Sets the window resize `callback` for the `window`.
 
   The `callback` is a function of the window the event is from and the two ints
@@ -630,18 +648,9 @@
 
   If `scope` is passed, the callback will be kept valid for the duration of that
   scope. If it is not, a [[mem/global-scope]] is used."
-  "glfwSetWindowSizeCallback" [::window ::mem/pointer] ::mem/pointer
-  glfw-set-window-size-callback
-  ([window callback] (set-window-size-callback window callback (mem/global-scope)))
-  ([window callback scope]
-   (mem/deserialize*
-    (glfw-set-window-size-callback
-     window (mem/serialize* callback ::window-size-fn scope))
-    ::window-size-fn)))
+  [::ffi/fn [::window ::mem/int ::mem/int] ::mem/void])
 
-(defalias ::window-close-fn [::ffi/fn [::window] ::mem/void])
-
-(defcfn set-window-close-callback
+(def-wnd-callback window-close
   "Sets the window close `callback` for the `window`.
 
   The `callback` is a function of the window the event is from.
@@ -650,18 +659,9 @@
 
   If `scope` is passed, the callback will be kept valid for the duration of that
   scope. If it is not, a [[mem/global-scope]] is used."
-  "glfwSetWindowCloseCallback" [::window ::mem/pointer] ::mem/pointer
-  glfw-set-window-close-callback
-  ([window callback] (set-window-close-callback window callback (mem/global-scope)))
-  ([window callback scope]
-   (mem/deserialize*
-    (glfw-set-window-close-callback
-     window (mem/serialize* callback ::window-close-fn scope))
-    ::window-close-fn)))
+  [::ffi/fn [::window] ::mem/void])
 
-(defalias ::window-refresh-fn [::ffi/fn [::window] ::mem/void])
-
-(defcfn set-window-refresh-callback
+(def-wnd-callback window-refresh
   "Sets the window refresh `callback` for the `window`.
 
   The `callback` is a function of the window the event is from.
@@ -670,18 +670,9 @@
 
   If `scope` is passed, the callback will be kept valid for the duration of that
   scope. If it is not, a [[mem/global-scope]] is used."
-  "glfwSetWindowRefreshCallback" [::window ::mem/pointer] ::mem/pointer
-  glfw-set-window-refresh-callback
-  ([window callback] (set-window-refresh-callback window callback (mem/global-scope)))
-  ([window callback scope]
-   (mem/deserialize*
-    (glfw-set-window-refresh-callback
-     window (mem/serialize* callback ::window-refresh-fn scope))
-    ::window-refresh-fn)))
+  [::ffi/fn [::window] ::mem/void])
 
-(defalias ::window-focus-fn [::ffi/fn [::window ::mem/int] ::mem/void])
-
-(defcfn set-window-focus-callback
+(def-wnd-callback window-focus
   "Sets the window focus `callback` for the `window`.
 
   The `callback` is a function of the window the event is from and a boolean of
@@ -691,18 +682,9 @@
 
   If `scope` is passed, the callback will be kept valid for the duration of that
   scope. If it is not, a [[mem/global-scope]] is used."
-  "glfwSetWindowFocusCallback" [::window ::mem/pointer] ::mem/pointer
-  glfw-set-window-focus-callback
-  ([window callback] (set-window-focus-callback window callback (mem/global-scope)))
-  ([window callback scope]
-   (mem/deserialize*
-    (glfw-set-window-focus-callback
-     window (mem/serialize* #(callback %1 (if (zero? %2) false true)) ::window-focus-fn scope))
-    ::window-focus-fn)))
+  [::ffi/fn [::window ::mem/int] ::mem/void])
 
-(defalias ::window-iconify-fn [::ffi/fn [::window ::mem/int] ::mem/void])
-
-(defcfn set-window-iconify-callback
+(def-wnd-callback window-iconify
   "Sets the window iconify `callback` for the `window`.
 
   The `callback` is a function of the window the event is from and a boolean of
@@ -712,18 +694,9 @@
 
   If `scope` is passed, the callback will be kept valid for the duration of that
   scope. If it is not, a [[mem/global-scope]] is used."
-  "glfwSetWindowIconifyCallback" [::window ::mem/pointer] ::mem/pointer
-  glfw-set-window-iconify-callback
-  ([window callback] (set-window-iconify-callback window callback (mem/global-scope)))
-  ([window callback scope]
-   (mem/deserialize*
-    (glfw-set-window-iconify-callback
-     window (mem/serialize* #(callback %1 (if (zero? %2) false true)) ::window-iconify-fn scope))
-    ::window-iconify-fn)))
+  [::ffi/fn [::window ::mem/int] ::mem/void])
 
-(defalias ::window-maximize-fn [::ffi/fn [::window ::mem/int] ::mem/void])
-
-(defcfn set-window-maximize-callback
+(def-wnd-callback window-maximize
   "Sets the window maximize `callback` for the `window`.
 
   The `callback` is a function of the window the event is from and a boolean of
@@ -733,18 +706,9 @@
 
   If `scope` is passed, the callback will be kept valid for the duration of that
   scope. If it is not, a [[mem/global-scope]] is used."
-  "glfwSetWindowMaximizeCallback" [::window ::mem/pointer] ::mem/pointer
-  glfw-set-window-maximize-callback
-  ([window callback] (set-window-maximize-callback window callback (mem/global-scope)))
-  ([window callback scope]
-   (mem/deserialize*
-    (glfw-set-window-maximize-callback
-     window (mem/serialize* #(callback %1 (if (zero? %2) false true)) ::window-maximize-fn scope))
-    ::window-maximize-fn)))
+  [::ffi/fn [::window ::mem/int] ::mem/void])
 
-(defalias ::window-framebuffer-size-fn [::ffi/fn [::window ::mem/int ::mem/int] ::mem/void])
-
-(defcfn set-framebuffer-size-callback
+(def-wnd-callback framebuffer-size
   "Sets the window framebuffer size `callback` for the `window`.
 
   The `callback` is a function of the window the event is from and two ints
@@ -754,18 +718,9 @@
 
   If `scope` is passed, the callback will be kept valid for the duration of that
   scope. If it is not, a [[mem/global-scope]] is used."
-  "glfwSetFramebufferSizeCallback" [::window ::mem/pointer] ::mem/pointer
-  glfw-set-framebuffer-size-callback
-  ([window callback] (set-framebuffer-size-callback window callback (mem/global-scope)))
-  ([window callback scope]
-   (mem/deserialize*
-    (glfw-set-framebuffer-size-callback
-     window (mem/serialize* callback ::window-framebuffer-size-fn scope))
-    ::window-framebuffer-size-fn)))
+  [::ffi/fn [::window ::mem/int ::mem/int] ::mem/void])
 
-(defalias ::window-content-scale-fn [::ffi/fn [::window ::mem/float ::mem/float] ::mem/void])
-
-(defcfn set-window-content-scale-callback
+(def-wnd-callback window-content-scale
   "Sets the window content scale `callback` for the `window`.
 
   The `callback` is a function of the window the event is from and two floats
@@ -775,14 +730,7 @@
 
   If `scope` is passed, the callback will be kept valid for the duration of that
   scope. If it is not, a [[mem/global-scope]] is used."
-  "glfwSetWindowContentScaleCallback" [::window ::mem/pointer] ::mem/pointer
-  glfw-set-window-content-scale-callback
-  ([window callback] (set-window-content-scale-callback window callback (mem/global-scope)))
-  ([window callback scope]
-   (mem/deserialize*
-    (glfw-set-window-content-scale-callback
-     window (mem/serialize* callback ::window-content-scale-fn scope))
-    ::window-content-scale-fn)))
+  [::ffi/fn [::window ::mem/float ::mem/float] ::mem/void])
 
 (defcfn poll-events
   "Process all events on all the windows.
@@ -991,22 +939,12 @@
     0x00040001 ::connected
     0x00040002 ::disconnected))
 
-(defalias ::monitor-fn [::ffi/fn [::monitor ::monitor-event] ::mem/void])
-
-(defcfn set-monitor-callback
+(defcallback monitor
   "Set a callback to be called whenever the monitor configuration changes.
 
   The callback is a function of a monitor and one of `:connected` or
   `:disconnected`."
-  "glfwSetMonitorCallback" [::monitor-fn] ::monitor-fn
-  glfw-set-monitor-callback
-  ([callback]
-   (set-monitor-callback callback (mem/global-scope)))
-  ([callback scope]
-   (mem/deserialize*
-    (glfw-set-monitor-callback
-     (mem/serialize* callback ::monitor-fn scope))
-    ::monitor-fn)))
+  [::ffi/fn [::monitor ::monitor-event] ::mem/void])
 
 (defalias ::vidmode
   [::mem/struct
