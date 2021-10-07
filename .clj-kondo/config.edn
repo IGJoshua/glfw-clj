@@ -1,1 +1,4 @@
-{:config-paths ["org.suskalo/coffi"]}
+{:config-paths ["org.suskalo/coffi"]
+ :lint-as {glfw-clj.core/defcallback clj-kondo.lint-as/def-catch-all
+           glfw-clj.core/def-wnd-callback clj-kondo.lint-as/def-catch-all
+           glfw-clj.core/with-out-args clojure.core/let}}
