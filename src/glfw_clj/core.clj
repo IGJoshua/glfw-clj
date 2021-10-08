@@ -66,7 +66,7 @@
   [fn-name docstring fn-type]
   (defcallback-body fn-name docstring fn-type nil))
 (s/fdef defcallback
-  :args (s/cat :fn-name simple-symbol?
+  :args (s/cat :fn-name simple-keyword?
                :docstring string?
                :fn-type ::mem/type))
 
@@ -74,7 +74,7 @@
   [fn-name docstring fn-type]
   (defcallback-body fn-name docstring fn-type '(window)))
 (s/fdef def-wnd-callback
-  :args (s/cat :fn-name simple-symbol?
+  :args (s/cat :fn-name simple-keyword?
                :docstring string?
                :fn-type ::mem/type))
 
@@ -204,7 +204,7 @@
       (when-not (identical? ::no-error error-code)
         (ex-info description-str {:type error-code})))))
 
-(defcallback error
+(defcallback :error
   "Sets the global error callback for GLFW.
 
   The callback is a function of an integer error code and a string description.
@@ -631,7 +631,7 @@
   "Gets a user-defined pointer value associated with the `window`."
   "glfwGetWindowUserPointer" [::window] ::mem/pointer)
 
-(def-wnd-callback window-pos
+(def-wnd-callback :window-pos
   "Sets the position `callback` for the given `window`.
 
   The `callback` is a function of the window the event is from and the two ints
@@ -643,7 +643,7 @@
   scope. If it is not, a [[mem/global-scope]] is used."
   [::ffi/fn [::window ::mem/int ::mem/int] ::mem/void])
 
-(def-wnd-callback window-size
+(def-wnd-callback :window-size
   "Sets the window resize `callback` for the `window`.
 
   The `callback` is a function of the window the event is from and the two ints
@@ -655,7 +655,7 @@
   scope. If it is not, a [[mem/global-scope]] is used."
   [::ffi/fn [::window ::mem/int ::mem/int] ::mem/void])
 
-(def-wnd-callback window-close
+(def-wnd-callback :window-close
   "Sets the window close `callback` for the `window`.
 
   The `callback` is a function of the window the event is from.
@@ -666,7 +666,7 @@
   scope. If it is not, a [[mem/global-scope]] is used."
   [::ffi/fn [::window] ::mem/void])
 
-(def-wnd-callback window-refresh
+(def-wnd-callback :window-refresh
   "Sets the window refresh `callback` for the `window`.
 
   The `callback` is a function of the window the event is from.
@@ -677,7 +677,7 @@
   scope. If it is not, a [[mem/global-scope]] is used."
   [::ffi/fn [::window] ::mem/void])
 
-(def-wnd-callback window-focus
+(def-wnd-callback :window-focus
   "Sets the window focus `callback` for the `window`.
 
   The `callback` is a function of the window the event is from and a boolean of
@@ -689,7 +689,7 @@
   scope. If it is not, a [[mem/global-scope]] is used."
   [::ffi/fn [::window ::mem/int] ::mem/void])
 
-(def-wnd-callback window-iconify
+(def-wnd-callback :window-iconify
   "Sets the window iconify `callback` for the `window`.
 
   The `callback` is a function of the window the event is from and a boolean of
@@ -701,7 +701,7 @@
   scope. If it is not, a [[mem/global-scope]] is used."
   [::ffi/fn [::window ::mem/int] ::mem/void])
 
-(def-wnd-callback window-maximize
+(def-wnd-callback :window-maximize
   "Sets the window maximize `callback` for the `window`.
 
   The `callback` is a function of the window the event is from and a boolean of
@@ -713,7 +713,7 @@
   scope. If it is not, a [[mem/global-scope]] is used."
   [::ffi/fn [::window ::mem/int] ::mem/void])
 
-(def-wnd-callback framebuffer-size
+(def-wnd-callback :framebuffer-size
   "Sets the window framebuffer size `callback` for the `window`.
 
   The `callback` is a function of the window the event is from and two ints
@@ -725,7 +725,7 @@
   scope. If it is not, a [[mem/global-scope]] is used."
   [::ffi/fn [::window ::mem/int ::mem/int] ::mem/void])
 
-(def-wnd-callback window-content-scale
+(def-wnd-callback :window-content-scale
   "Sets the window content scale `callback` for the `window`.
 
   The `callback` is a function of the window the event is from and two floats
@@ -924,7 +924,7 @@
     0x00040001 ::connected
     0x00040002 ::disconnected))
 
-(defcallback monitor
+(defcallback :monitor
   "Set a callback to be called whenever the monitor configuration changes.
 
   The callback is a function of a monitor and one of `:connected` or
