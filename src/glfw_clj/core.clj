@@ -914,11 +914,11 @@
   "Gets the user-defined pointer for the `monitor`."
   "glfwGetMonitorUserPointer" [::monitor] ::mem/pointer)
 
-(defmethod mem/primitive-type ::monitor-event
+(defmethod mem/primitive-type ::connection-event
   [_type]
   ::mem/int)
 
-(defmethod mem/deserialize* ::monitor-event
+(defmethod mem/deserialize* ::connection-event
   [obj _type]
   (case obj
     0x00040001 ::connected
@@ -929,7 +929,7 @@
 
   The callback is a function of a monitor and one of `:connected` or
   `:disconnected`."
-  [::ffi/fn [::monitor ::monitor-event] ::mem/void])
+  [::ffi/fn [::monitor ::connection-event] ::mem/void])
 
 (defalias ::vidmode
   [::mem/struct
