@@ -999,12 +999,9 @@
   [segment _type]
   (let [struct (mem/deserialize-from segment gamma-ramp-type)
         size (:size struct)
-        reds (mem/deserialize (:red struct)
-                              [::mem/pointer [::mem/array ::mem/short size]])
-        greens (mem/deserialize (:green struct)
-                                [::mem/pointer [::mem/array ::mem/short size]])
-        blues (mem/deserialize (:blue struct)
-                               [::mem/pointer [::mem/array ::mem/short size]])]
+        reds (mem/deserialize* (:red struct) [::mem/pointer [::mem/array ::mem/short size]])
+        greens (mem/deserialize* (:green struct) [::mem/pointer [::mem/array ::mem/short size]])
+        blues (mem/deserialize* (:blue struct) [::mem/pointer [::mem/array ::mem/short size]])]
     (map (fn [red green blue]
            {:red (Short/toUnsignedInt red)
             :green (Short/toUnsignedInt green)
