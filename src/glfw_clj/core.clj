@@ -1037,3 +1037,769 @@
   See [[get-gamma-ramp]]."
   {:arglists '([monitor gamma-ramp])}
   "glfwSetGammaRamp" [::monitor [::mem/pointer ::gamma-ramp]] ::mem/void)
+
+;;; Input
+
+(defenum ::input-mode
+  {::cursor 0x00033001
+   ::sticky-map-keys 0x00033002
+   ::sticky-mouse-buttons 0x00033003
+   ::lock-key-mods 0x00033004
+   ::raw-mouse-motion 0x00033005})
+
+(def ^:private enum->cursor-mode
+  {(int 0x00034001) ::cursor-normal
+   (int 0x00034002) ::cursor-hidden
+   (int 0x00034003) ::cursor-disabled})
+(def ^:private cursor-mode->enum (reverse-map enum->cursor-mode))
+(def cursor-modes (set (map-keys cursor-mode->enum)))
+
+(defcfn get-input-mode
+  "Gets the value of the given `input-mode` for the `window`.
+
+  Values for `:glfw-clj.core/cursor` are `:glfw-clj.core/normal`, as well as
+  `hidden`, and `disabled` keywords in the same ns.
+
+  Other modes are either true or false.
+
+  See [[input-modes]]."
+  "glfwGetInputMode" [::window ::input-mode] ::mem/int
+  glfw-get-input-mode
+  [window input-mode]
+  (let [result (glfw-get-input-mode window input-mode)]
+    (if (identical? ::cursor input-mode)
+      (enum->cursor-mode result)
+      (not (zero? result)))))
+
+(defcfn set-input-mode
+  "Sets the `input-mode` for the given `window`.
+
+  Mode values for `:glfw-clj.core/cursor` are `:glfw-clj.core/normal`, as well
+  as `hidden`, and `disabled` keywords in the same ns.
+
+  Other modes take true or false.
+
+  See [[input-modes]]."
+  "glfwSetInputMode" [::window ::input-mode ::mem/int] ::mem/void
+  glfw-set-input-mode
+  [window input-mode mode]
+  (glfw-set-input-mode
+   window
+   input-mode
+   (if (identical? ::cursor input-mode)
+     (cursor-mode->enum mode)
+     (if mode 1 0))))
+
+(defcfn raw-mouse-motion-supported
+  "Returns if raw mouse motion is supported by the current system.
+
+  This value will not change after [[init]] is called, so it needs only be
+  called once.
+
+  Raw mouse motion is useful in situations where mouse input is used for
+  something besides moving a cursor, and as such raw mouse motion is only
+  provided when the cursor input mode is disabled."
+  "glfwRawMouseMotionSupported" [] ::bool)
+
+(defenum ::key
+  {::key-unknown -1
+   ::key-space 32
+   ::key-apostrophe 39
+   ::key-comma 44
+   ::key-minus 45
+   ::key-period 46
+   ::key-slash 47
+   ::key-0 48
+   ::key-1 49
+   ::key-2 50
+   ::key-3 51
+   ::key-4 52
+   ::key-5 53
+   ::key-6 54
+   ::key-7 55
+   ::key-8 56
+   ::key-9 57
+   ::key-semicolon 59
+   ::key-equal 61
+   ::key-a 65
+   ::key-b 66
+   ::key-c 67
+   ::key-d 68
+   ::key-e 69
+   ::key-f 70
+   ::key-g 71
+   ::key-h 72
+   ::key-i 73
+   ::key-j 74
+   ::key-k 75
+   ::key-l 76
+   ::key-m 77
+   ::key-n 78
+   ::key-o 79
+   ::key-p 80
+   ::key-q 81
+   ::key-r 82
+   ::key-s 83
+   ::key-t 84
+   ::key-u 85
+   ::key-v 86
+   ::key-w 87
+   ::key-x 88
+   ::key-y 89
+   ::key-z 90
+   ::key-left-bracket 91
+   ::key-backslash 92
+   ::key-right-bracket 93
+   ::key-grave-accent 96
+   ::key-world-1 161
+   ::key-world-2 162
+   ::key-escape 256
+   ::key-enter 257
+   ::key-tab 258
+   ::key-backspace 259
+   ::key-insert 260
+   ::key-delete 261
+   ::key-right 262
+   ::key-left 263
+   ::key-down 264
+   ::key-up 265
+   ::key-page-up 266
+   ::key-page-down 267
+   ::key-home 268
+   ::key-end 269
+   ::key-caps-lock 280
+   ::key-scroll-lock 281
+   ::key-num-lock 282
+   ::key-print-screen 283
+   ::key-pause 284
+   ::key-f1 290
+   ::key-f2 291
+   ::key-f3 292
+   ::key-f4 293
+   ::key-f5 294
+   ::key-f6 295
+   ::key-f7 296
+   ::key-f8 297
+   ::key-f9 298
+   ::key-f10 299
+   ::key-f11 300
+   ::key-f12 301
+   ::key-f13 302
+   ::key-f14 303
+   ::key-f15 304
+   ::key-f16 305
+   ::key-f17 306
+   ::key-f18 307
+   ::key-f19 308
+   ::key-f20 309
+   ::key-f21 310
+   ::key-f22 311
+   ::key-f23 312
+   ::key-f24 313
+   ::key-f25 314
+   ::key-kp-0 320
+   ::key-kp-1 321
+   ::key-kp-2 322
+   ::key-kp-3 323
+   ::key-kp-4 324
+   ::key-kp-5 325
+   ::key-kp-6 326
+   ::key-kp-7 327
+   ::key-kp-8 328
+   ::key-kp-9 329
+   ::key-kp-decimal 330
+   ::key-kp-divide 331
+   ::key-kp-multiply 332
+   ::key-kp-subtract 333
+   ::key-kp-add 334
+   ::key-kp-enter 335
+   ::key-kp-equal 336
+   ::key-left-shift 340
+   ::key-left-control 341
+   ::key-left-alt 342
+   ::key-left-super 343
+   ::key-right-shift 344
+   ::key-right-control 345
+   ::key-right-alt 346
+   ::key-right-super 347
+   ::key-menu 348})
+
+(defcfn get-key-name
+  "Get the printable name of a key as a string.
+
+  This is generally the character the key will produce without any modifier
+  keys, intended for displaying keybindings to a user.
+
+  If the `key` is nil or `:glfw-clj.core/key-unknown`, it is ignored and
+  `scancode` is used, otherwise `scancode` is ignored.
+
+  For non-printable keys, returns nil."
+  {:arglists '([key scancode])}
+  "glfwGetKeyName" [::key ::mem/int] ::mem/c-string
+  glfw-get-key-name
+  [key scancode]
+  (glfw-get-key-name (or key ::key-unknown) (or scancode 0)))
+
+(defcfn get-key-scancode
+  "Gets the scancode of the `key`.
+
+  If the `key` is unknown or nil, or the key doesn't exist on the keyboard,
+  returns nil."
+  "glfwGetKeyScancode" [::key] ::mem/int
+  glfw-get-key-scancode
+  [key]
+  (let [ret (glfw-get-key-scancode (or key ::key-unknown))]
+    (if (not= -1 ret)
+      ret
+      nil)))
+
+(defenum ::key-event
+  {::press 1
+   ::release 0
+   ::repeat 2})
+
+(defcfn get-key
+  "Gets the most recent key event for the `key` in `window`.
+
+  Returns either `:glfw-clj.core/press` or `:glfw-clj.core/release`. To get the
+  higher-level input `:glfw-clj.core/repeat` you must use the callback
+  via [[set-key-callback]]."
+  "glfwGetKey" [::window ::key] ::key-event)
+
+(defenum ::mouse-button
+  {::mouse-button-1 0
+   ::mouse-button-2 1
+   ::mouse-button-3 2
+   ::mouse-button-4 3
+   ::mouse-button-5 4
+   ::mouse-button-6 5
+   ::mouse-button-7 6
+   ::mouse-button-8 7})
+
+(derive ::mouse-button-left ::mouse-button-1)
+(derive ::mouse-button-right ::mouse-button-2)
+(derive ::mouse-button-middle ::mouse-button-3)
+
+(defcfn get-mouse-button
+  "Gets the most recent button event for the `mouse-button` in `window`.
+
+  Returns either `:glfw-clj.core/press` or `:glfw-clj.core/release` "
+  "glfwGetMouseButton" [::window ::mouse-button] ::key-event)
+
+(defcfn get-cursor-pos
+  "Gets the current cursor position as a vector of the x and y.
+
+  The coordinates are screen coordinates starting from the top left corner of
+  the content area of the `window`.
+
+  If the cursor is disabled then the value is not connected to the `window`
+  directly and is unbounded."
+  "glfwGetCursorPos" [::window ::mem/pointer ::mem/pointer] ::mem/void
+  glfw-get-cursor-pos
+  [window]
+  (with-out-args [xpos ::mem/double
+                  ypos ::mem/double]
+    (glfw-get-cursor-pos window xpos ypos)))
+
+(defcfn set-cursor-pos
+  "Sets the position of the cursor relative to the `window`.
+
+  Do not use this function to implement things like camera controls. Instead set
+  the cursor mode to disabled."
+  {:arglists '([window xpos ypos])}
+  "glfwSetCursorPos" [::window ::mem/double ::mem/double] ::mem/void)
+
+(defalias ::cursor ::mem/pointer)
+
+(defcfn create-cursor
+  "Creates and returns a custom cursor object.
+
+  The resulting cursor object should be cleaned up with [[destroy-cursor]].
+
+  The hotspot is the location in pixels of the point on the cursor which will be
+  reported as its location, starting from the top left.
+
+  See [[set-cursor]], [[set-window-icon]]."
+  {:arglists '([image hotspot-x hotspot-y])}
+  "glfwCreateCursor" [::image ::mem/int ::mem/int] ::cursor)
+
+(defenum ::standard-cursor
+  {::arrow-cursor 0x00036001
+   ::ibeam-cursor 0x00036002
+   ::crosshair-cursor 0x00036003
+   ::hand-cursor 0x00036004
+   ::hresize-cursor 0x00036005
+   ::vresize-cursor 0x00036006})
+
+(defcfn create-standard-cursor
+  "Create a cursor object with a standard shape.
+
+  See [[standard-cursors]], [[create-cursor]]."
+  "glfwCreateStandardCursor" [::standard-cursor] ::cursor)
+
+(defcfn destroy-cursor
+  "Destroy a cursor object and release its related resources.
+
+  All remaining cursors are also destroyed on [[terminate]].
+
+  See [[create-cursor]]."
+  "glfwDestroyCursor" [::cursor] ::mem/void)
+
+(defcfn set-cursor
+  "Sets the cursor image for the given `window` to the passed `cursor` object.
+
+  The cursor image will only be visible when the cursor mode is
+  `:glfw-clj.core/cursor-normal`.
+
+  See [[create-cursor]], [[create-standard-cursor]]."
+  "glfwSetCursor" [::window ::cursor] ::mem/void)
+
+(def ^:private mod->enum
+  {::mod-shift 0x0001
+   ::mod-control 0x0002
+   ::mod-alt 0x0004
+   ::mod-super 0x0008
+   ::mod-caps-lock 0x0010
+   ::mod-num-lock 0x0020})
+(def mods (set (map-keys mod->enum)))
+
+(defmethod mem/primitive-type ::mods
+  [_type]
+  ::mem/int)
+
+(defmethod mem/serialize* ::mods
+  [obj _type _scope]
+  (int (transduce (map mod->enum) (completing bit-or) 0 obj)))
+
+(defmethod mem/deserialize* ::mods
+  [obj _type]
+  (transduce
+   (comp (filter #(not (zero? (bit-and (second %) obj))))
+         (map first))
+   conj
+   #{}
+   mod->enum))
+
+(def-wnd-callback :key
+  "Sets the `callback` to be called when a key event occurs.
+
+  This should not be used for text input. Instead use [[set-char-callback]].
+
+  The callback is a function of the window, a key name, scancode, key event, and
+  active key mods at the time of the event. The return value is ignored.
+
+  When the `window` loses focus, artificial key release events are generated for
+  all currently pressed keys. You can distinguish the difference between real
+  events and these generated ones by the fact that the focus loss event will be
+  processed before these release events.
+
+  Some keys will register with a key name of `:glfw-clj.core/key-unknown`. These
+  are keys that GLFW has no name for and are identified by the scancode passed.
+  They are platform and keyboard-specific, so should not be used across devices,
+  and cannot be queried with [[get-key]].
+
+  In some cases additional events will be generated by GLFW, which may have a
+  scancode of 0.
+
+  Returns the old callback, if any was set."
+  [::ffi/fn [::window ::key ::mem/int ::key-event ::mods] ::mem/void])
+
+(defmethod mem/primitive-type ::codepoint
+  [_type]
+  ::mem/int)
+
+(defmethod mem/serialize* ::codepoint
+  [obj _type _scope]
+  (Character/codePointAt (char-array (if (char? obj) [obj] obj)) 0))
+
+(defmethod mem/deserialize* ::codepoint
+  [obj _type]
+  (apply str (Character/toChars obj)))
+
+(def-wnd-callback :char
+  "Sets the `callback` to be called when a character is input.
+
+  This is used for Unicode character input.
+
+  The callback is a function of the window and a string representing a single
+  unicode character. It may or may not be representable in a [[char]]. The
+  return value is ignored.
+
+  Returns the old callback if any was set."
+  [::ffi/fn [::window ::codepoint] ::mem/void])
+
+(def-wnd-callback :char-mods
+  "Sets the `callback` to be called when a character is input, including key mods.
+
+  This is used for Unicode character input.
+
+  The callback is a function of the window and a string representing a single
+  unicode character, plus a key mod set. The unicode character may or may not be
+  representable in a [[char]]. The return value is ignored.
+
+  Returns the old callback if any was set.
+
+  Deprecated and will be removed in GLFW 4.0."
+  [::ffi/fn [::window ::codepoint ::mods] ::mem/void])
+#_{:clj-kondo/ignore [:unresolved-symbol]}
+(alter-meta! #'set-char-mods-callback assoc :deprecated true)
+
+(def-wnd-callback :mouse-button
+  "Sets the `callback` to be called when a mouse button is pressed.
+
+  The callback is a function of the window, the mouse button the event is
+  connected with, and the event. The return value is ignored.
+
+  When focus is lost on the `window`, synthetic mouse button release events are
+  sent for all currently-pressed buttons. These events will be handled after the
+  focus event.
+
+  Returns the old callback if any was set."
+  [::ffi/fn [::window ::mouse-button ::key-event] ::mem/void])
+
+(def-wnd-callback :cursor-pos
+  "Sets the `callback` to be called when the mouse moves.
+
+  The callback is a function of the window and the new x and y position of the
+  cursor. The return value is ignored.
+
+  The position is provided in screen coordinates relative to the upper left of
+  the window.
+
+  Returns the old callback if any was set."
+  [::ffi/fn [::window ::mem/double ::mem/double] ::mem/void])
+
+(def-wnd-callback :cursor-enter
+  "Sets the `callback` to be called when the mouse enters the content area of the `window`.
+
+  The callback is a function of the window and a boolean, which will be true if
+  the cursor is now in the window, and false if it is no longer in the window.
+  The return value is ignored.
+
+  Returns the old callback if any was set."
+  [::ffi/fn [::window ::bool] ::mem/void])
+
+(def-wnd-callback :scroll
+  "Sets the `callback` to be called when the scroll wheel is rotated.
+
+  The callback is a function of the window and the x and y offsets that were
+  scrolled since the last time events were processed. The return value is
+  ignored.
+
+  Returns the old callback if any was set."
+  [::ffi/fn [::window ::mem/double ::mem/double] ::mem/void])
+
+(defalias ::drop-fn [::ffi/fn [::window ::mem/int ::mem/pointer] ::mem/void])
+
+(defcfn set-drop-callback
+  "Sets the `callback` to be called when a file is dropped into the window.
+
+  The callback is a function of the window and a vector of file paths. The
+  return value is ignored.
+
+  Returns the old callback if any was set."
+  "glfwSetDropCallback" [::window ::mem/pointer] ::mem/pointer
+  glfw-set-drop-callback
+  ([window callback]
+   (set-drop-callback window callback (mem/global-scope)))
+  ([window callback scope]
+   (mem/deserialize*
+    (glfw-set-drop-callback
+     window
+     (mem/serialize*
+      (fn [window count paths]
+        (try (let [paths (mem/deserialize* paths [::mem/pointer [::mem/array ::mem/c-string count]])]
+               (callback window paths))
+             (catch Throwable e
+               (log/error e "Caught an exeption in callback drop")
+               nil)))
+      ::drop-fn scope))
+    ::drop-fn)))
+
+(defcfn joystick-present
+  "Returns if a joystick with the given `jid` is present.
+
+  All other functions that take a `jid` first check if it is present, so this
+  need not be called before them."
+  {:arglists '([jid])}
+  "glfwJoystickPresent" [::mem/int] ::bool)
+
+(defcfn get-joystick-axes
+  "Gets a vector of all the joystick axis values for the joystick `jid`.
+
+  All the returned values are floats from -1.0 to 1.0."
+  "glfwGetJoystickAxes" [::mem/int ::mem/pointer] ::mem/pointer
+  glfw-get-joystick-axes
+  [jid]
+  (with-open [scope (mem/stack-scope)]
+    (let [count (mem/alloc-instance ::mem/int scope)
+          axes (glfw-get-joystick-axes jid (mem/address-of count))
+          count (mem/deserialize-from count ::mem/int)]
+      (mem/deserialize* axes [::mem/pointer [::mem/array ::mem/float count]]))))
+
+(defcfn get-joystick-buttons
+  "Gets a vector of all the buttons for the joystick `jid`.
+
+  All the returned values are `:glfw-clj.core/press` or
+  `:glfw-clj.core/release`.
+
+  By default all hats are also included as sets of four buttons in the order up,
+  right, down, left, and they are returned in the same order
+  as [[get-joystick-hats]].
+
+  These can be elided from this list if the [[init-hint]]
+  `:glfw-clj.core/joystick-hat-buttons` is set to false."
+  "glfwGetJoystickButtons" [::mem/int ::mem/pointer] ::mem/pointer
+  glfw-get-joystick-buttons
+  [jid]
+  (with-open [scope (mem/stack-scope)]
+    (let [count (mem/alloc-instance ::mem/int scope)
+          buttons (glfw-get-joystick-buttons jid (mem/address-of count))
+          count (mem/deserialize-from count ::mem/int)]
+      (mapv
+       #_{:clj-kondo/ignore [:unresolved-symbol]}
+       enum->key-event
+       (mem/deserialize* buttons [::mem/pointer [::mem/array ::mem/byte count]])))))
+
+(def ^:private hat->enum
+  {::hat-up 1
+   ::hat-right 2
+   ::hat-down 4
+   ::hat-left 8})
+(def hats (set (map-keys hat->enum)))
+
+(defmethod mem/primitive-type ::hat
+  [_type]
+  ::mem/int)
+
+(defmethod mem/serialize* ::hat
+  [obj _type _scope]
+  (transduce (map hat->enum) (completing bit-or) 0 obj))
+
+(defmethod mem/deserialize* ::hat
+  [obj _type]
+  (transduce
+   (keep #(when-not (zero? (bit-and (second %) obj))
+            (first %)))
+   conj #{}
+   hat->enum))
+
+(defcfn get-joystick-hats
+  "Gets a vector of the state of all hats on the joystick `jid`.
+
+  The hats are sets of keywords representing the directions pressed.
+
+  See [[hats]]."
+  "glfwGetJoystickHats" [::mem/int ::mem/pointer] ::mem/pointer
+  glfw-get-joystick-hats
+  [jid]
+  (with-open [scope (mem/stack-scope)]
+    (let [count (mem/alloc-instance ::mem/int scope)
+          hats (glfw-get-joystick-hats jid (mem/address-of count))
+          count (mem/deserialize-from count ::mem/int)]
+      (mapv
+       #(mem/deserialize* % ::hat)
+       (mem/deserialize* hats [::mem/pointer [::mem/array ::mem/byte count]])))))
+
+(defcfn get-joystick-name
+  "Get the name of the joystick `jid`.
+
+  If the joystick is not present, returns nil."
+  {:arglists '([jid])}
+  "glfwGetJoystickName" [::mem/int] ::mem/c-string)
+
+(defcfn get-joystick-guid
+  "Get the SDL-compatible GUID as a hex string of the joystick `jid`.
+
+  This GUID is what's used to identify a joystick as a gamepad. Each GUID
+  identifies a model of joystick, but not is not unique to a particular
+  connected joystick (e.g. all wired Xbox 360 controllers will have the same
+  GUID). These GUIDs may also be different between platforms."
+  {:arglists '([jid])}
+  "glfwGetJoystickGUID" [::mem/int] ::mem/c-string)
+
+(defcfn set-joystick-user-pointer
+  "Set a user pointer attached to the joystick `jid`.
+
+  This is used to enable not depending on global state inside the joystick
+  callback.
+
+  See [[get-joystick-user-pointer]]."
+  {:arglists '([jid pointer])}
+  "glfwGetJoystickUserPointer" [::mem/int ::mem/pointer] ::mem/void)
+
+(defcfn get-joystick-user-pointer
+  "Gets the user appointer attached to the joystick `jid`.
+
+  This is used to fetch data attached to the joystick from inside the joystick
+  callback without relying on global state.
+
+  See [[set-joystick-user-pointer]]."
+  {:arglists '([jid])}
+  "glfwSetJoystickUserPointer" [::mem/int] ::mem/pointer)
+
+(defcfn jostick-is-gamepad
+  "Returns if the joystick `jid` is present and has a gamepad mapping."
+  {:arglists '([jid])}
+  "glfwJoystickIsGamepad" [::mem/int] ::bool)
+
+(defcallback :joystick
+  "Sets the `callback` to be called when a joystick connection event occurs.
+
+  The callback is a function of the jid of the joystick and a keyword
+  representing a connection event. The return value is ignored.
+
+  For joystick connection events to be processed, one of the event processing
+  functions like [[poll-events]] must be called.
+
+  Returns the old callback if any was set.
+
+  See [[connection-events]]."
+  [::ffi/fn [::mem/int ::connection-event] ::mem/void])
+
+(defcfn update-gamepad-mappings
+  "Parse the passed mappings string and update internal list.
+
+  The mappings string can contain either a single gamepad mapping, or many
+  mappings separated by newlines. The parser supports the full format of
+  `gamecontrollerdb.txt` source file including empty lines and comments.
+
+  See the [Gamepad Mappings Guide](https://www.glfw.org/docs/latest/input_guide.html#gamepad_mapping)
+  for a full description of the format.
+
+  If there is already a mapping for a passed GUID, it will be overriden with the
+  new mapping. If [[terminate]] is called, followed by a second [[init]], the
+  internal mappings will be reset to their defaults."
+  {:arglists '([mappings])}
+  "glfwUpdateGamepadMappings" [::mem/c-string] ::bool)
+
+(defcfn get-gamepad-name
+  "Returns the human-readable name of the gamepad from the gamepad mapping assigned to the joystick `jid`.
+
+  If the joystick does not exist or does not have a gamepad mapping, returns
+  nil."
+  {:arglists '([jid])}
+  "glfwGetGamepadName" [::mem/int] ::mem/c-string)
+
+(def ^:private gamepad-state-type
+  [::mem/struct
+   [[:buttons [::mem/array ::mem/byte 15]]
+    [:axes [::mem/array ::mem/float 6]]]])
+
+(defmethod mem/c-layout ::gamepad-state
+  [_type]
+  (mem/c-layout gamepad-state-type))
+
+(defmethod mem/deserialize-from ::gamepad-state
+  [segment _type]
+  (let [struct (mem/deserialize-from
+                segment
+                gamepad-state-type)
+        buttons (mapv #(mem/deserialize* % ::key-event) (:buttons struct))
+        buttons (into #{}
+                      (map #(when (#{::press} %2)
+                              %1)
+                           buttons
+                           [:a :b :x :y :left-bumper :right-bumper
+                            :back :start :guide :left-thumb :right-thumb
+                            :dpad-up :dpad-right :dpad-down :dpad-left]))
+        axes (:axes struct)
+        left-stick (subvec axes 0 2)
+        right-stick (subvec axes 2 4)
+        left-trigger (nth axes 4)
+        right-trigger (nth axes 5)]
+    {:buttons buttons
+     :axes {:left-stick left-stick
+            :right-stick right-stick
+            :left-trigger left-trigger
+            :right-trigger right-trigger}}))
+
+(defcfn get-gamepad-state
+  "Gets the state of the joystick `jid` remapped to an Xbox-like gamepad.
+
+  If the joystick does not exist, returns nil.
+
+  Returns a map with the keys `:buttons` and `:axes`.
+
+  `:buttons` is a set of currently pressed button names. The buttons are `:a`,
+  `:b` `:x`, `:y`, `:left-bumper`, `:right-bumper`, `:back`, `:start`, `:guide`,
+  `:left-thumb`, `:right-thumb`, `:dpad-up`, `:dpad-right`, `:dpad-down`, and
+  `:dpad-left`.
+
+  The `:guide` button may not be available as it is often hooked by the system
+  or by Steam.
+
+  `:axes` is a map from `:left-stick` and `:right-stick` to vectors of the x and
+  y values of the axis, as doubles from -1.0 to 1.0, and from `:left-trigger`
+  and `:right-trigger` to a number from 0 to 1.0.
+
+  Unavailable buttons and axes will report as not pressed and 0.0 respectively."
+  "glfwGetGamepadState" [::mem/int ::mem/pointer] ::bool
+  glfw-get-gamepad-state
+  [jid]
+  (with-open [scope (mem/stack-scope)]
+    (let [state (mem/alloc-instance ::gamepad-state scope)
+          gamepad-exists? (glfw-get-gamepad-state jid (mem/address-of state))]
+      (when gamepad-exists?
+        (mem/deserialize-from state ::gamepad-state)))))
+
+(defcfn set-clipboard-string
+  "Sets the system clipboard to the specified, UTF-8 encoded string."
+  {:arglists '([window s])}
+  "glfwSetClipboardString" [::window ::mem/c-string] ::mem/void)
+
+(defcfn get-clipboard-string
+  "Gets the content of the system clipboard as a UTF-8 encoded string.
+
+  If the clipboard is empty or is not encoded as a valid UTF-8 string then nil
+  is returned and a `:glfw-clj.core/format-unavailable` error is generated."
+  "glfwGetClipboardString" [::window] ::mem/c-string)
+
+(defcfn get-time
+  "Gets the current time in seconds.
+
+  The returned time counts from the call to [[init]] by default, but can be
+  altered with [[set-time]].
+
+  This uses the highest-resolution monotonic time available on the current
+  platform.
+
+  This function may be called from any thread."
+  "glfwGetTime" [] ::mem/double)
+
+(defcfn set-time
+  "Set the current time to be counted from.
+
+  The number must be a positive, finite number less than 18446744073.0, which is
+  approximately 584.5 years.
+
+  This limit is based on the largest number of nanoseconds that can be stored in
+  a 64-bit integer, and may be increased in the future.
+
+  This function may be called from any thread, but is not atomic or synchronized
+  in any way with calls to [[get-time]], and so must be externally
+  synchronized."
+  {:arglists '([time])}
+  "glfwSetTime" [::mem/double] ::mem/void)
+
+(defcfn get-timer-value
+  "Gets the current raw timer value.
+
+  The raw timer value is an integral value which does not have a consistent
+  mapping to a particular length of time. To convert this to a consistent time,
+  divide it by the timer frequency.
+
+  This function may be called from any thread.
+
+  See [[get-timer-frequency]]."
+  "glfwGetTimerValue" [] ::mem/long)
+
+(defcfn get-timer-frequency
+  "Gets the frequency in Hz of the raw system timer.
+
+  Returns 0 if there was an error.
+
+  This function may be called from any thread.
+
+  See [[get-timer-value]]."
+  "glfwGetTimerFrequency" [] ::mem/long)
