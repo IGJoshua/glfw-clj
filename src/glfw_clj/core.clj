@@ -3,6 +3,7 @@
   (:require
    [clojure.spec.alpha :as s]
    [clojure.string :as str]
+   [clojure.tools.logging :as log]
    [coffi.mem :as mem :refer [defalias]]
    [coffi.ffi :as ffi :refer [defcfn]]))
 
@@ -18,24 +19,26 @@
   (let [plural (if (= \s (last (name enum-name)))
                  "es"
                  "s")
-        enum-sym (symbol (str (name enum-name) plural))]
+        enum-sym (symbol (str (name enum-name) plural))
+        enum->int (symbol (str (name enum-name) "->enum"))
+        int->enum (symbol (str "enum->" (name enum-name)))]
     `(do
-       (def ^:private enum->int#
+       (def ^:private ~enum->int
          ~(reduce-kv #(assoc %1 %2 `(int ~%3)) {} val-map))
-       (def ^:private int->enum#
-         (reverse-map enum->int#))
-       (def ~enum-sym (set (map-keys enum->int#)))
+       (def ^:private ~int->enum
+         (reverse-map ~enum->int))
+       (def ~enum-sym (set (map-keys ~enum->int)))
 
        (defmethod mem/primitive-type ~enum-name
          [_type#]
          ::mem/int)
        (defmethod mem/serialize* ~enum-name
          [obj# _type# _scope#]
-         (or (enum->int# obj#)
-             (some enum->int# (parents obj#))))
+         (or (~enum->int obj#)
+             (some ~enum->int (parents obj#))))
        (defmethod mem/deserialize* ~enum-name
          [obj# _type#]
-         (int->enum# obj#)))))
+         (~int->enum obj#)))))
 (s/fdef defenum
   :args (s/cat :enum-name qualified-keyword?
                :val-map (s/map-of qualified-keyword? number?)))
@@ -59,7 +62,20 @@
          ([~@extra-args ~'callback] (~set-var-name ~@extra-args ~'callback (mem/global-scope)))
          ([~@extra-args ~'callback ~'scope]
           (mem/deserialize*
-           (native-fn# ~@extra-args (mem/serialize* ~'callback ~type-name ~'scope))
+           (native-fn#
+            ~@extra-args
+            (mem/serialize*
+             (fn [~'& args#]
+               (try (apply ~'callback args#)
+                    ;; NOTE(Joshua): This actually *should* catch Throwable
+                    ;; because anything that gets thrown past a callback
+                    ;; boundary *will* crash the JVM.
+                    (catch Throwable e#
+                      (log/error e# ~(str "Caught an exception in callback " (name fn-name)))
+                      ;; FIXME(Joshua): If this is used for a callback that
+                      ;; returns a non-void type, this will still crash.
+                      nil)))
+             ~type-name ~'scope))
            ~type-name))))))
 
 (defmacro ^:private defcallback
