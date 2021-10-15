@@ -48,7 +48,7 @@
   (str/replace s #"(^|-)(\S)" #(str/upper-case (nth % 2))))
 
 (defn- defcallback-body
-  [fn-name docstring fn-type extra-args]
+  [fn-name docstring fn-type & {:keys [window?]}]
   (let [type-name (keyword "glfw-clj.core" (str (name fn-name) "-fn"))
         set-var-name (symbol (str "set-" (name fn-name) "-callback"))
         native-symbol (str "glfwSet" (camel-case (name fn-name)) "Callback")]
@@ -57,13 +57,14 @@
        (defcfn ~(with-meta set-var-name
                   (meta fn-name))
          ~docstring
-         ~native-symbol [::mem/pointer] ::mem/pointer
+         ~native-symbol [~@(when window? [::window]) ::mem/pointer] ::mem/pointer
          native-fn#
-         ([~@extra-args ~'callback] (~set-var-name ~@extra-args ~'callback (mem/global-scope)))
-         ([~@extra-args ~'callback ~'scope]
+         ([~@(when window? '[window]) ~'callback]
+          (~set-var-name ~@(when window? '[window]) ~'callback (mem/global-scope)))
+         ([~@(when window? '[window]) ~'callback ~'scope]
           (mem/deserialize*
            (native-fn#
-            ~@extra-args
+            ~@(when window? '[window])
             (mem/serialize*
              (fn [~'& args#]
                (try (apply ~'callback args#)
@@ -80,7 +81,7 @@
 
 (defmacro ^:private defcallback
   [fn-name docstring fn-type]
-  (defcallback-body fn-name docstring fn-type nil))
+  (defcallback-body fn-name docstring fn-type))
 (s/fdef defcallback
   :args (s/cat :fn-name simple-keyword?
                :docstring string?
@@ -88,7 +89,7 @@
 
 (defmacro ^:private def-wnd-callback
   [fn-name docstring fn-type]
-  (defcallback-body fn-name docstring fn-type '(window)))
+  (defcallback-body fn-name docstring fn-type :window? true))
 (s/fdef def-wnd-callback
   :args (s/cat :fn-name simple-keyword?
                :docstring string?
