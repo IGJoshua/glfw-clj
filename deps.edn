@@ -1,6 +1,6 @@
 {:paths ["src"]
  :deps {org.clojure/clojure {:mvn/version "1.10.3"}
-        org.suskalo/coffi {:mvn/version "0.1.192"}
+        org.suskalo/coffi {:mvn/version "0.1.251"}
         org.clojure/tools.logging {:mvn/version "1.1.0"}}
  :aliases
  {:local-coffi {:override-deps {org.suskalo/coffi {:local/root "../coffi"}}}
@@ -23,7 +23,7 @@
           :exec-fn run-tasks}
   :install {:replace-deps {slipset/deps-deploy {:mvn/version "0.1.5"}}
             :exec-fn deps-deploy.deps-deploy/deploy
-            :exec-args {:installer :local :artifact "glfw_clj.jar"}}
+            :exec-args {:installer :local :artifact "target/glfw-clj.jar"}}
   :deploy {:replace-deps {slipset/deps-deploy {:mvn/version "0.1.5"}}
            :exec-fn deps-deploy.deps-deploy/deploy
-           :exec-args {:installer :remote :artifact "glfw_clj.jar"}}}}
+           :exec-args {:installer :remote :artifact "target/glfw-clj.jar"}}}}
