@@ -18,6 +18,15 @@
              "was"
              (str (name action) "ed") "with mods" mods))
 
+(defn connected-joystick
+  [jid]
+  (log/info "Joystick" jid "connected")
+  (log/debug "Joystick name:" (glfw/get-joystick-name jid))
+  (let [gamepad? (glfw/joystick-is-gamepad jid)]
+    (log/debug "Is gamepad?" gamepad?)
+    (when gamepad?
+      (log/debug "Gamepad name:" (glfw/get-gamepad-name jid)))))
+
 (defn run-loop
   []
   (glfw/wait-events-timeout 0.01)
@@ -33,6 +42,8 @@
   (glfw/set-mouse-button-callback
    @window
    #(log/debug "Mouse button" %2 "was" (str (name %3) "ed")))
+  (glfw/set-joystick-callback #(when (#{::glfw/connected} %2)
+                                 (connected-joystick %1)))
   (glfw/make-context-current @window)
   (glfw/swap-interval 1)
   (loop []
