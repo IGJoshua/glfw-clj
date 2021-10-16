@@ -1,4 +1,4 @@
-{:paths ["src"]
+{:paths ["src" "resources"]
  :deps {org.clojure/clojure {:mvn/version "1.10.3"}
         org.suskalo/coffi {:mvn/version "0.2.259"}
         org.clojure/tools.logging {:mvn/version "1.1.0"}}
