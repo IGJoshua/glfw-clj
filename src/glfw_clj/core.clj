@@ -1639,7 +1639,7 @@
   {:arglists '([jid])}
   "glfwSetJoystickUserPointer" [::mem/int] ::mem/pointer)
 
-(defcfn jostick-is-gamepad
+(defcfn joystick-is-gamepad
   "Returns if the joystick `jid` is present and has a gamepad mapping."
   {:arglists '([jid])}
   "glfwJoystickIsGamepad" [::mem/int] ::bool)
