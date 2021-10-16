@@ -1,4 +1,12 @@
 (ns glfw-clj.core
+  "Wrappers for GLFW functions.
+
+  Any function that does not explicitly say it can be called from any thread
+  should be called only from the main thread.
+
+  GLFW enums are represented with keywords in this namespace sans the `GLFW_`
+  prefix, and are in lower kebab case. `GLFW_TRUE` and `GLFW_FALSE` are
+  represented with booleans."
   (:refer-clojure :rename {keys map-keys})
   (:require
    [clojure.spec.alpha :as s]
