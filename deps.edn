@@ -23,7 +23,7 @@
                       :output-path "docs"
                       :project
                       {:name "glfw-clj"
-                       :version "v0.1"
+                       :version "v0.1.66"
                        :description "A wrapper for GLFW in Clojure."}
                       :source-uri "https://github.com/IGJoshua/glfw-clj/blob/{git-commit}/{filepath}#L{line}"
                       :metadata {:doc/format :markdown}}
