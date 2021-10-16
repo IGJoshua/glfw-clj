@@ -1,4 +1,5 @@
 # glfw-clj
+[![Clojars Project](https://img.shields.io/clojars/v/org.suskalo/glfw-clj.svg)](https://clojars.org/org.suskalo/glfw-clj)
 A wrapper for the excellent [GLFW](https://www.glfw.org/) library, on top of the
 [coffi](https://github.com/IGJoshua/coffi) foreign function interface library
 for Clojure.
