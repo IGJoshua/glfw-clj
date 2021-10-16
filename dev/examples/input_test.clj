@@ -11,20 +11,30 @@
                       {:type error})))
 
 (defn print-key
-  [_window key scancode action mode]
+  [_window key scancode action mods]
   (log/debug (if-not (#{::glfw/key-unknown} key)
-               key
+               (name key)
                (str "#scancode " scancode))
-             action mode))
+             "was"
+             (str (name action) "ed") "with mods" mods))
 
 (defn run-loop
   []
-  (glfw/poll-events))
+  (glfw/wait-events-timeout 0.01)
+  (glfw/swap-buffers @window))
 
 (defn run
   []
   (reset! window (glfw/create-window 800 600 "Test Window"))
   (glfw/set-key-callback @window print-key)
+  (glfw/set-cursor-pos-callback
+   @window
+   #(log/debug "Mouse moved to" %2 %3))
+  (glfw/set-mouse-button-callback
+   @window
+   #(log/debug "Mouse button" %2 "was" (str (name %3) "ed")))
+  (glfw/make-context-current @window)
+  (glfw/swap-interval 1)
   (loop []
     (run-loop)
     (when (not (glfw/window-should-close @window))
