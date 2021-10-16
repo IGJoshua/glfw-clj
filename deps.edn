@@ -17,6 +17,19 @@
                  :sha "62ef1de18e076903374306060ac0e8a752e57c86"}}
    :exec-fn cognitect.test-runner.api/test}
 
+  :codox {:extra-deps {codox/codox {:mvn/version "0.10.7"}}
+          :exec-fn codox.main/generate-docs
+          :exec-args {:source-paths  ["src"]
+                      :output-path "docs"
+                      :project
+                      {:name "glfw-clj"
+                       :version "v0.1"
+                       :description "A wrapper for GLFW in Clojure."}
+                      :source-uri "https://github.com/IGJoshua/glfw-clj/blob/{git-commit}/{filepath}#L{line}"
+                      :metadata {:doc/format :markdown}}
+          :jvm-opts ["--add-modules=jdk.incubator.foreign"
+                     "--add-opens" "java.base/java.lang=ALL-UNNAMED"]}
+
   :build {:replace-deps {org.clojure/clojure {:mvn/version "1.10.3"}
                          io.github.clojure/tools.build {:git/tag "v0.3.0" :git/sha "e418fc9"}}
           :ns-default build
