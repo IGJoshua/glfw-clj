@@ -27,7 +27,7 @@
                        :description "A wrapper for GLFW in Clojure."}
                       :source-uri "https://github.com/IGJoshua/glfw-clj/blob/{git-commit}/{filepath}#L{line}"
                       :metadata {:doc/format :markdown}}
-          :jvm-opts ["--add-modules=jdk.incubator.foreign"
+          :jvm-opts ["--add-modules=jdk.incubator.foreign" "--enable-native-access=ALL-UNNAMED"
                      "--add-opens" "java.base/java.lang=ALL-UNNAMED"]}
 
   :build {:replace-deps {org.clojure/clojure {:mvn/version "1.10.3"}
