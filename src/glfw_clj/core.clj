@@ -865,7 +865,7 @@
           monitors (glfw-get-monitors (mem/address-of count))
           count (mem/deserialize-from count ::mem/int)
           array-size (mem/size-of [::mem/array ::monitor count])
-          monitors (mem/slice-global monitors array-size)]
+          monitors (mem/as-segment monitors array-size)]
       (mem/seq-of ::monitor monitors))))
 
 (defcfn get-primary-monitor
@@ -978,7 +978,7 @@
     (let [count (mem/alloc-instance ::mem/int scope)
           vidmodes (glfw-get-video-modes monitor (mem/address-of count))
           count (mem/deserialize-from count ::mem/int)
-          vidmodes (mem/slice-global vidmodes (mem/size-of [::mem/array ::vidmode count]))]
+          vidmodes (mem/as-segment vidmodes (mem/size-of [::mem/array ::vidmode count]))]
       (mem/seq-of ::vidmode vidmodes))))
 
 (defcfn get-video-mode
