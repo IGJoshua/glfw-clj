@@ -30,7 +30,7 @@ Functions are provided in the `glfw-clj.core` namespace, which is intended to be
 aliased as `glfw`.
 
 ```clojure
-user=> (reqiure '[glfw-clj.core :as glfw])
+user=> (require '[glfw-clj.core :as glfw])
 ```
 
 Then functions will follow the same names as are in the original library, but
