@@ -17,7 +17,7 @@
    [clojure.tools.build.api :as b]))
 
 (def lib-coord 'org.suskalo/glfw-clj)
-(def version (format "0.1.%s" (b/git-count-revs nil)))
+(def version (format "1.0.%s" (b/git-count-revs nil)))
 
 (def resource-dirs ["resources/"])
 
