@@ -16,3 +16,4 @@
 .hg/
 
 **/.dir-locals.el
+.direnv/
