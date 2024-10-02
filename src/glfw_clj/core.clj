@@ -41,7 +41,7 @@
          [_type#]
          ::mem/int)
        (defmethod mem/serialize* ~enum-name
-         [obj# _type# _scope#]
+         [obj# _type# _arena#]
          (or (~enum->int obj#)
              (some ~enum->int (parents obj#))))
        (defmethod mem/deserialize* ~enum-name
@@ -68,8 +68,8 @@
          ~native-symbol [~@(when window? [::window]) ::mem/pointer] ::mem/pointer
          native-fn#
          ([~@(when window? '[window]) ~'callback]
-          (~set-var-name ~@(when window? '[window]) ~'callback (mem/global-scope)))
-         ([~@(when window? '[window]) ~'callback ~'scope]
+          (~set-var-name ~@(when window? '[window]) ~'callback (mem/global-arena)))
+         ([~@(when window? '[window]) ~'callback ~'arena]
           (mem/deserialize*
            (native-fn#
             ~@(when window? '[window])
@@ -84,7 +84,7 @@
                       ;; FIXME(Joshua): If this is used for a callback that
                       ;; returns a non-void type, this will still crash.
                       nil)))
-             ~type-name ~'scope))
+             ~type-name ~'arena))
            ~type-name))))))
 
 (defmacro ^:private defcallback
@@ -108,13 +108,13 @@
   [bindings expr]
   (let [segments (repeatedly (/ (count bindings) 2)
                              #(gensym "segment"))
-        scope (gensym "scope")]
-    `(with-open [~scope (mem/stack-scope)]
+        arena (gensym "arena")]
+    `(with-open [~arena (mem/confined-arena)]
        (let [~@(->> bindings
                     (partition 2)
                     (map (partial apply vector) segments)
                     (mapcat (fn [[segment binding type]]
-                              [segment `(mem/alloc-instance ~type ~scope)
+                              [segment `(mem/alloc-instance ~type ~arena)
                                binding `(mem/address-of ~segment)])))]
          ~expr
          [~@(->> bindings
@@ -161,7 +161,7 @@
   ::mem/int)
 
 (defmethod mem/serialize* ::bool
-  [obj _type _scope]
+  [obj _type _arena]
   (int (if obj 1 0)))
 
 (defmethod mem/deserialize* ::bool
@@ -222,8 +222,8 @@
   "glfwGetError" [::mem/pointer] ::error-code
   glfw-get-error
   []
-  (with-open [scope (mem/stack-scope)]
-    (let [description (mem/alloc-instance ::mem/pointer scope)
+  (with-open [arena (mem/confined-arena)]
+    (let [description (mem/alloc-instance ::mem/pointer arena)
           error-code (glfw-get-error (mem/address-of description))
           description-str (mem/deserialize-from description ::mem/c-string)]
       (when-not (identical? ::no-error error-code)
@@ -236,9 +236,9 @@
 
   Returns the previous callback, or nil if there was none.
 
-  If `scope` is passed, the callback will be kept valid for the duration of that
-  scope. If it is not, a [[mem/global-scope]] is used. If the callback is called
-  by GLFW after the scope has been released, it will cause a JVM crash.
+  If `arena` is passed, the callback will be kept valid for the duration of that
+  arena. If it is not, a [[mem/global-arena]] is used. If the callback is called
+  by GLFW after the arena has been released, it will cause a JVM crash.
 
   This function may be called before [[init]]."
   [::ffi/fn [::error-code ::mem/c-string] ::mem/void])
@@ -429,11 +429,11 @@
   "glfwSetWindowIcon" [::window ::mem/int ::mem/pointer] ::mem/void
   glfw-set-window-icon
   [window images]
-  (with-open [scope (mem/stack-scope)]
-    (let [image-array (mem/alloc-instance [::mem/array ::image (count images)] scope)]
+  (with-open [arena (mem/confined-arena)]
+    (let [image-array (mem/alloc-instance [::mem/array ::image (count images)] arena)]
       (dorun
        (map (fn [segment image]
-              (mem/serialize-into image ::image segment scope))
+              (mem/serialize-into image ::image segment arena))
             (mem/slice-segments image-array (mem/size-of ::image))
             images))
       (glfw-set-window-icon window (count images) (mem/address-of image-array)))))
@@ -664,8 +664,8 @@
 
   Returns the previous callback, or nil if there was none.
 
-  If `scope` is passed, the callback will be kept valid for the duration of that
-  scope. If it is not, a [[mem/global-scope]] is used."
+  If `arena` is passed, the callback will be kept valid for the duration of that
+  arena. If it is not, a [[mem/global-arena]] is used."
   [::ffi/fn [::window ::mem/int ::mem/int] ::mem/void])
 
 (def-wnd-callback :window-size
@@ -676,8 +676,8 @@
 
   Returns the previous callback, or nil if there was none.
 
-  If `scope` is passed, the callback will be kept valid for the duration of that
-  scope. If it is not, a [[mem/global-scope]] is used."
+  If `arena` is passed, the callback will be kept valid for the duration of that
+  arena. If it is not, a [[mem/global-arena]] is used."
   [::ffi/fn [::window ::mem/int ::mem/int] ::mem/void])
 
 (def-wnd-callback :window-close
@@ -687,8 +687,8 @@
 
   Returns the previous callback, or nil if there was none.
 
-  If `scope` is passed, the callback will be kept valid for the duration of that
-  scope. If it is not, a [[mem/global-scope]] is used."
+  If `arena` is passed, the callback will be kept valid for the duration of that
+  arena. If it is not, a [[mem/global-arena]] is used."
   [::ffi/fn [::window] ::mem/void])
 
 (def-wnd-callback :window-refresh
@@ -698,8 +698,8 @@
 
   Returns the previous callback, or nil if there was none.
 
-  If `scope` is passed, the callback will be kept valid for the duration of that
-  scope. If it is not, a [[mem/global-scope]] is used."
+  If `arena` is passed, the callback will be kept valid for the duration of that
+  arena. If it is not, a [[mem/global-arena]] is used."
   [::ffi/fn [::window] ::mem/void])
 
 (def-wnd-callback :window-focus
@@ -710,8 +710,8 @@
 
   Returns the previous callback, or nil if there was none.
 
-  If `scope` is passed, the callback will be kept valid for the duration of that
-  scope. If it is not, a [[mem/global-scope]] is used."
+  If `arena` is passed, the callback will be kept valid for the duration of that
+  arena. If it is not, a [[mem/global-arena]] is used."
   [::ffi/fn [::window ::mem/int] ::mem/void])
 
 (def-wnd-callback :window-iconify
@@ -722,8 +722,8 @@
 
   Returns the previous callback, or nil if there was none.
 
-  If `scope` is passed, the callback will be kept valid for the duration of that
-  scope. If it is not, a [[mem/global-scope]] is used."
+  If `arena` is passed, the callback will be kept valid for the duration of that
+  arena. If it is not, a [[mem/global-arena]] is used."
   [::ffi/fn [::window ::mem/int] ::mem/void])
 
 (def-wnd-callback :window-maximize
@@ -734,8 +734,8 @@
 
   Returns the previous callback, or nil if there was none.
 
-  If `scope` is passed, the callback will be kept valid for the duration of that
-  scope. If it is not, a [[mem/global-scope]] is used."
+  If `arena` is passed, the callback will be kept valid for the duration of that
+  arena. If it is not, a [[mem/global-arena]] is used."
   [::ffi/fn [::window ::mem/int] ::mem/void])
 
 (def-wnd-callback :framebuffer-size
@@ -746,8 +746,8 @@
 
   Returns the previous callback, or nil if there was none.
 
-  If `scope` is passed, the callback will be kept valid for the duration of that
-  scope. If it is not, a [[mem/global-scope]] is used."
+  If `arena` is passed, the callback will be kept valid for the duration of that
+  arena. If it is not, a [[mem/global-arena]] is used."
   [::ffi/fn [::window ::mem/int ::mem/int] ::mem/void])
 
 (def-wnd-callback :window-content-scale
@@ -758,8 +758,8 @@
 
   Returns the previous callback, or nil if there was none.
 
-  If `scope` is passed, the callback will be kept valid for the duration of that
-  scope. If it is not, a [[mem/global-scope]] is used."
+  If `arena` is passed, the callback will be kept valid for the duration of that
+  arena. If it is not, a [[mem/global-arena]] is used."
   [::ffi/fn [::window ::mem/float ::mem/float] ::mem/void])
 
 (defcfn poll-events
@@ -860,8 +860,8 @@
   "glfwGetMonitors" [::mem/pointer] ::mem/pointer
   glfw-get-monitors
   []
-  (with-open [scope (mem/stack-scope)]
-    (let [count (mem/alloc-instance ::mem/int scope)
+  (with-open [arena (mem/confined-arena)]
+    (let [count (mem/alloc-instance ::mem/int arena)
           monitors (glfw-get-monitors (mem/address-of count))
           count (mem/deserialize-from count ::mem/int)
           array-size (mem/size-of [::mem/array ::monitor count])
@@ -974,8 +974,8 @@
   "glfwGetVideoModes" [::monitor ::mem/pointer] ::mem/pointer
   glfw-get-video-modes
   [monitor]
-  (with-open [scope (mem/stack-scope)]
-    (let [count (mem/alloc-instance ::mem/int scope)
+  (with-open [arena (mem/confined-arena)]
+    (let [count (mem/alloc-instance ::mem/int arena)
           vidmodes (glfw-get-video-modes monitor (mem/address-of count))
           count (mem/deserialize-from count ::mem/int)
           vidmodes (mem/as-segment vidmodes (mem/size-of [::mem/array ::vidmode count]))]
@@ -1006,11 +1006,11 @@
   (mem/c-layout gamma-ramp-type))
 
 (defmethod mem/serialize-into ::gamma-ramp
-  [obj _type segment scope]
+  [obj _type segment arena]
   (let [size (count obj)
-        reds (mem/serialize (map :red obj) [::mem/array ::mem/short size] scope)
-        greens (mem/serialize (map :green obj) [::mem/array ::mem/short size] scope)
-        blues (mem/serialize (map :blue obj) [::mem/array ::mem/short size] scope)]
+        reds (mem/serialize (map :red obj) [::mem/array ::mem/short size] arena)
+        greens (mem/serialize (map :green obj) [::mem/array ::mem/short size] arena)
+        blues (mem/serialize (map :blue obj) [::mem/array ::mem/short size] arena)]
     (mem/serialize-into
      {:red (mem/address-of reds)
       :green (mem/address-of greens)
@@ -1018,7 +1018,7 @@
       :size size}
      gamma-ramp-type
      segment
-     scope)))
+     arena)))
 
 (defmethod mem/deserialize-from ::gamma-ramp
   [segment _type]
@@ -1377,7 +1377,7 @@
   ::mem/int)
 
 (defmethod mem/serialize* ::mods
-  [obj _type _scope]
+  [obj _type _arena]
   (int (transduce (map mod->enum) (completing bit-or) 0 obj)))
 
 (defmethod mem/deserialize* ::mods
@@ -1418,7 +1418,7 @@
   ::mem/int)
 
 (defmethod mem/serialize* ::codepoint
-  [obj _type _scope]
+  [obj _type _arena]
   (Character/codePointAt (char-array (if (char? obj) [obj] obj)) 0))
 
 (defmethod mem/deserialize* ::codepoint
@@ -1510,8 +1510,8 @@
   "glfwSetDropCallback" [::window ::mem/pointer] ::mem/pointer
   glfw-set-drop-callback
   ([window callback]
-   (set-drop-callback window callback (mem/global-scope)))
-  ([window callback scope]
+   (set-drop-callback window callback (mem/global-arena)))
+  ([window callback arena]
    (mem/deserialize*
     (glfw-set-drop-callback
      window
@@ -1522,7 +1522,7 @@
              (catch Throwable e
                (log/error e "Caught an exeption in callback drop")
                nil)))
-      ::drop-fn scope))
+      ::drop-fn arena))
     ::drop-fn)))
 
 (defcfn joystick-present
@@ -1540,8 +1540,8 @@
   "glfwGetJoystickAxes" [::mem/int ::mem/pointer] ::mem/pointer
   glfw-get-joystick-axes
   [jid]
-  (with-open [scope (mem/stack-scope)]
-    (let [count (mem/alloc-instance ::mem/int scope)
+  (with-open [arena (mem/confined-arena)]
+    (let [count (mem/alloc-instance ::mem/int arena)
           axes (glfw-get-joystick-axes jid (mem/address-of count))
           count (mem/deserialize-from count ::mem/int)]
       (mem/deserialize* axes [::mem/pointer [::mem/array ::mem/float count]]))))
@@ -1561,8 +1561,8 @@
   "glfwGetJoystickButtons" [::mem/int ::mem/pointer] ::mem/pointer
   glfw-get-joystick-buttons
   [jid]
-  (with-open [scope (mem/stack-scope)]
-    (let [count (mem/alloc-instance ::mem/int scope)
+  (with-open [arena (mem/confined-arena)]
+    (let [count (mem/alloc-instance ::mem/int arena)
           buttons (glfw-get-joystick-buttons jid (mem/address-of count))
           count (mem/deserialize-from count ::mem/int)]
       (mapv
@@ -1582,7 +1582,7 @@
   ::mem/int)
 
 (defmethod mem/serialize* ::hat
-  [obj _type _scope]
+  [obj _type _arena]
   (transduce (map hat->enum) (completing bit-or) 0 obj))
 
 (defmethod mem/deserialize* ::hat
@@ -1602,8 +1602,8 @@
   "glfwGetJoystickHats" [::mem/int ::mem/pointer] ::mem/pointer
   glfw-get-joystick-hats
   [jid]
-  (with-open [scope (mem/stack-scope)]
-    (let [count (mem/alloc-instance ::mem/int scope)
+  (with-open [arena (mem/confined-arena)]
+    (let [count (mem/alloc-instance ::mem/int arena)
           hats (glfw-get-joystick-hats jid (mem/address-of count))
           count (mem/deserialize-from count ::mem/int)]
       (mapv
@@ -1746,8 +1746,8 @@
   "glfwGetGamepadState" [::mem/int ::mem/pointer] ::bool
   glfw-get-gamepad-state
   [jid]
-  (with-open [scope (mem/stack-scope)]
-    (let [state (mem/alloc-instance ::gamepad-state scope)
+  (with-open [arena (mem/confined-arena)]
+    (let [state (mem/alloc-instance ::gamepad-state arena)
           gamepad-exists? (glfw-get-gamepad-state jid (mem/address-of state))]
       (when gamepad-exists?
         (mem/deserialize-from state ::gamepad-state)))))

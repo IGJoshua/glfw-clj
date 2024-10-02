@@ -1,13 +1,13 @@
 {:paths ["src" "resources"]
- :deps {org.clojure/clojure {:mvn/version "1.10.3"}
-        org.suskalo/coffi {:mvn/version "0.2.259"}
+ :deps {org.clojure/clojure {:mvn/version "1.11.4"}
+        org.suskalo/coffi {:mvn/version "1.0.450"}
         org.clojure/tools.logging {:mvn/version "1.1.0"}}
  :aliases
  {:local-coffi {:override-deps {org.suskalo/coffi {:local/root "../coffi"}}}
   :dev {:extra-paths ["." "dev"]
         :extra-deps {io.github.clojure/tools.build {:git/tag "v0.3.0" :git/sha "e418fc9"}
                      ch.qos.logback/logback-classic {:mvn/version "1.2.6"}}
-        :jvm-opts ["--add-modules=jdk.incubator.foreign" "--enable-native-access=ALL-UNNAMED"
+        :jvm-opts ["--enable-native-access=ALL-UNNAMED"
                    "-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory"]}
   :test
   {:extra-paths ["test"]
@@ -26,8 +26,7 @@
                       :output-path "docs"
                       :source-uri "https://github.com/IGJoshua/glfw-clj/blob/{git-commit}/{filepath}#L{line}"
                       :metadata {:doc/format :markdown}}
-          :jvm-opts ["--add-modules=jdk.incubator.foreign" "--enable-native-access=ALL-UNNAMED"
-                     "--add-opens" "java.base/java.lang=ALL-UNNAMED"]}
+          :jvm-opts ["--enable-native-access=ALL-UNNAMED" "--add-opens" "java.base/java.lang=ALL-UNNAMED"]}
 
   :build {:replace-deps {org.clojure/clojure {:mvn/version "1.10.3"}
                          io.github.clojure/tools.build {:git/tag "v0.3.0" :git/sha "e418fc9"}}
