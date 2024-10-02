@@ -21,7 +21,7 @@
                        insn/insn {:mvn/version "0.2.1"}}
           :exec-fn codox.main/generate-docs
           :exec-args {:name "glfw-clj"
-                      :version "v0.1.66"
+                      :version "v1.0.86"
                       :description "A wrapper for GLFW in Clojure."
                       :source-paths  ["src"]
                       :output-path "docs"
