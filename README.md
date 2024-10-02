@@ -12,8 +12,8 @@ This library is available on Clojars, and as a git dependency. You can add a
 dependency on it with the following configuration in your `deps.edn` file.
 
 ```clojure
-org.suskalo/glfw-clj {:mvn/version "0.1.66"}
-io.github.IGJoshua/glfw-clj {:git/tag "v0.1.66" :git/sha "4e6cd6c"}
+org.suskalo/glfw-clj {:mvn/version "1.0.86"}
+io.github.IGJoshua/glfw-clj {:git/tag "v1.0.86" :git/sha "911496a"}
 ```
 
 In addition to the module management [needed by
