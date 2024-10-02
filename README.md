@@ -58,11 +58,11 @@ booleans, and integers which map to a given `GLFW_SOME_ENUM` like `GLFW_PRESS`
 are replaced with keywords in the `glfw-clj.core` namespace. So `GLFW_PRESS` is
 mapped to the keyword `::glfw/press`.
 
-The set-callback functions take an optional `scope` parameter, which is a
-resource scope from coffi. This ensures that the callback is kept around for as
-long as it will be used. If you don't pass a scope, the global scope will be
+The set-callback functions take an optional `arena` parameter, which is a
+resource arena from coffi. This ensures that the callback is kept around for as
+long as it will be used. If you don't pass a arena, the global arena will be
 used. This is generally advisable if you set the callback once at the beginning
-of your program and don't change it. It's recommended to use this scope even
+of your program and don't change it. It's recommended to use this arena even
 when developing at the REPL to prevent JVM crashes.
 
 Callbacks will catch exceptions that are thrown in them and log them using
