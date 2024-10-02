@@ -1,0 +1,3 @@
+{:hooks {:analyze-call {glfw-clj.core/defcallback hooks.glfw-clj/defcallback
+                        glfw-clj.core/def-wnd-callback hooks.glfw-clj/def-wnd-callback
+                        glfw-clj.core/defenum hooks.glfw-clj/defenum}}}
