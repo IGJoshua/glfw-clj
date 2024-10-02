@@ -1,7 +1,9 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
-## [Unreleased]
+## [UNRELEASED]
+
+## [0.1.66] 2021-10-16
 ### Added
 - Add support for sections of the api
   - Initialization and Error Handling
@@ -10,5 +12,6 @@ All notable changes to this project will be documented in this file. This change
   - Input & Window Events
   - GL(ES) Context Acquisition
 
-[Unreleased]: https://github.com/IGJoshua/glfw-clj/compare/9cfb2830924f752bad5031f1b8895ee6fba0d6cb...HEAD
+[UNRELEASED]: https://github.com/IGJoshua/glfw-clj/compare/v0.1.66...HEAD
+[0.1.66]: https://github.com/IGJoshua/glfw-clj/compare/9cfb2830924f752bad5031f1b8895ee6fba0d6cb...v0.1.66
 
