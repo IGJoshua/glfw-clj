@@ -1,7 +1,9 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
-## [UNRELEASED]
+## [1.0.86] - 2024-10-02
+### Added
+- Support for JDK 22+ by bumping the coffi dependency
 
 ## [0.1.66] 2021-10-16
 ### Added
@@ -12,6 +14,6 @@ All notable changes to this project will be documented in this file. This change
   - Input & Window Events
   - GL(ES) Context Acquisition
 
-[UNRELEASED]: https://github.com/IGJoshua/glfw-clj/compare/v0.1.66...HEAD
+[1.0.86]: https://github.com/IGJoshua/glfw-clj/compare/v0.1.66...v1.0.86
 [0.1.66]: https://github.com/IGJoshua/glfw-clj/compare/9cfb2830924f752bad5031f1b8895ee6fba0d6cb...v0.1.66
 
