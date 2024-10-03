@@ -300,6 +300,9 @@
     ::opengl-forward-compat ::opengl-debug-context
     ::cocoa-retina-framebuffer ::cocoa-graphics-switching})
 
+(def ^:private string-window-hints
+  #{::cocoa-frame-name ::x11-class-name :x11-instance-name})
+
 (defcfn default-window-hints
   "Resets all the window creation init-hints to their default values."
   "glfwDefaultWindowHints" [] ::mem/void)
@@ -339,29 +342,31 @@
 (def ^:private enum->opengl-profile (reverse-map opengl-profile->enum))
 (def opengl-profile-opts (set (map-keys opengl-profile->enum)))
 
+(defcfn window-hint-string
+  "Sets a string-valued window hint for the next window to be created."
+  {:arglists '([hint value])}
+  "glfwWindowHintString" [::window-hint ::mem/c-string] ::mem/void)
+
 (defcfn window-hint
   "Sets a window hint for the next window to be created."
   "glfwWindowHint" [::window-hint ::mem/int] ::mem/void
   glfw-window-hint
   [hint value]
-  (glfw-window-hint
-   hint
-   (if (boolean-window-hints hint)
-     (if value 1 0)
-     (case hint
-       ::client-api (client-api->enum (or value ::opengl-api))
-       ::context-creation-api (context-api->enum (or value ::native-context-api))
-       ::context-robustness (context-robustness->enum (or value ::no-robustness))
-       ::context-release-behavior (release-behavior->enum (or value ::any-release-behavior))
-       ::opengl-profile (opengl-profile->enum (or value ::opengl-any-profile))
-       (if (identical? ::dont-care value)
-         -1
-         value)))))
-
-(defcfn window-hint-string
-  "Sets a string-valued window hint for the next window to be created."
-  {:arglists '([hint value])}
-  "glfwWindowHintString" [::window-hint ::mem/c-string] ::mem/void)
+  (if (string-window-hints hint)
+    (window-hint-string hint value)
+    (glfw-window-hint
+     hint
+     (if (boolean-window-hints hint)
+       (if value 1 0)
+       (case hint
+         ::client-api (client-api->enum (or value ::opengl-api))
+         ::context-creation-api (context-api->enum (or value ::native-context-api))
+         ::context-robustness (context-robustness->enum (or value ::no-robustness))
+         ::context-release-behavior (release-behavior->enum (or value ::any-release-behavior))
+         ::opengl-profile (opengl-profile->enum (or value ::opengl-any-profile))
+         (if (identical? ::dont-care value)
+           -1
+           value))))))
 
 (defalias ::window ::mem/pointer)
 (defalias ::monitor ::mem/pointer)
