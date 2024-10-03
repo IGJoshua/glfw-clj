@@ -348,7 +348,7 @@
    hint
    (if (boolean-window-hints hint)
      (if value 1 0)
-     (case value
+     (case hint
        ::client-api (client-api->enum (or value ::opengl-api))
        ::context-creation-api (context-api->enum (or value ::native-context-api))
        ::context-robustness (context-robustness->enum (or value ::no-robustness))
