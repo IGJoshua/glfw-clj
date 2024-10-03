@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
+### Added
+- New `window-hints` function which takes a map of hint names to values
+- Support for string hints to the original `window-hint` function
+
 ### Fixed
 - Bug where window hints would fail to convert keyword values to the appropriate hint for `client-api`, `context-creation-api`, `context-robustness`, `context-release-behavior`, and `opengl-profile`
 

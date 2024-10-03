@@ -368,6 +368,12 @@
            -1
            value))))))
 
+(defn window-hints
+  "Sets the default window hints with changes specified by the map `hints`."
+  [hints]
+  (default-window-hints)
+  (run! window-hint hints))
+
 (defalias ::window ::mem/pointer)
 (defalias ::monitor ::mem/pointer)
 
