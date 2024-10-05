@@ -5,8 +5,6 @@ A wrapper for the excellent [GLFW](https://www.glfw.org/) library, on top of the
 [coffi](https://github.com/IGJoshua/coffi) foreign function interface library
 for Clojure.
 
-This library provides
-
 ## Installation
 This library is available on Clojars, and as a git dependency. You can add a
 dependency on it with the following configuration in your `deps.edn` file.
